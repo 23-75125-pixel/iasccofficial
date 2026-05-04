@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">Face recognition logo</title>
+  <desc id="desc">Original facial recognition icon with scan corners and face outline.</desc>
+  <rect width="64" height="64" rx="14" fill="#c10a0a"/>
+  <path d="M18 25V18h7" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+  <path d="M39 18h7v7" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+  <path d="M46 39v7h-7" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+  <path d="M25 46h-7v-7" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+  <path d="M24 34c1.8 4.2 4.5 6.3 8 6.3s6.2-2.1 8-6.3" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>
+  <circle cx="26" cy="28" r="2.3" fill="#fff"/>
+  <circle cx="38" cy="28" r="2.3" fill="#fff"/>
+  <path d="M32 22c-7.2 0-12 4.9-12 11.1 0 7.1 5.1 12.9 12 12.9s12-5.8 12-12.9C44 26.9 39.2 22 32 22Z" fill="none" stroke="#fff" stroke-width="3.5"/>
+</svg>

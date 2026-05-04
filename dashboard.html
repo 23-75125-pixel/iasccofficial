@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard | Face Recognition Attendance System</title>
+  <link rel="stylesheet" href="../static/css/styles.css">
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <a class="brand" href="dashboard.html">
+        <img class="brand-mark" src="../static/assets/face-logo.svg" alt="Face Attendance logo">
+        <span>Face Attendance</span>
+      </a>
+      <nav class="nav-links" aria-label="Main navigation">
+        <a class="active" href="dashboard.html">Dashboard</a>
+        <a href="attendance.html">Live Attendance</a>
+        <a href="register.html">Register User</a>
+        <a href="records.html">Records</a>
+        <a href="login.html">Logout</a>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <header class="topbar">
+        <div>
+          <h1>Welcome back, Admin</h1>
+        </div>
+        <span class="status-pill active">System Active</span>
+      </header>
+
+      <section class="stats-grid" aria-label="Dashboard statistics">
+        <article class="stat-card">
+          <span>Total Students</span>
+          <strong>150</strong>
+          <p>Registered students in the system</p>
+        </article>
+        <article class="stat-card">
+          <span>Attendance Today</span>
+          <strong>87</strong>
+          <p>Students marked present today</p>
+        </article>
+        <article class="stat-card">
+          <span>System Status</span>
+          <strong>Active</strong>
+          <p>Ready for attendance monitoring</p>
+        </article>
+      </section>
+
+      <section class="panel">
+        <div class="section-heading">
+          <h2>Recent Activity</h2>
+          <p>Mock activity from today's attendance.</p>
+        </div>
+        <div class="activity-list" id="recentActivity"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="../static/js/script.js"></script>
+</body>
+</html>
