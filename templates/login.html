@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Login | Face Recognition Attendance System{% endblock %}
+{% block body_class %}grid place-items-center px-4 py-8{% endblock %}
+
+{% block content %}
+<main class="w-full max-w-md">
+  <section class="auth-card">
+    <div class="mb-8 flex items-center gap-3">
+      <img class="h-11 w-11 rounded-xl shadow-sm" src="{{ url_for('static', filename='assets/face-logo.svg') }}" alt="Face Attendance logo">
+      <div>
+        <h1 class="text-xl font-bold tracking-tight text-strong">Face Attendance</h1>
+        <p class="mt-0.5 text-sm text-muted">Admin portal</p>
+      </div>
+    </div>
+
+    <form class="grid gap-4" id="loginForm" method="post" action="{{ url_for('login') }}">
+      <div class="grid gap-1.5">
+        <label class="form-label" for="email">Email</label>
+        <input class="form-input" id="email" name="email" type="email" autocomplete="username" required>
+      </div>
+
+      <div class="grid gap-1.5">
+        <label class="form-label" for="password">Password</label>
+        <input class="form-input" id="password" name="password" type="password" autocomplete="current-password" required>
+      </div>
+
+      <button class="btn btn-primary" type="submit">Login</button>
+      <p class="min-h-5 text-sm {{ 'message-error' if error else 'text-muted' }}" id="loginMessage">
+        {{ error or ("Default admin: " ~ default_admin_email ~ " / " ~ default_admin_password) }}
+      </p>
+    </form>
+  </section>
+</main>
+{% endblock %}

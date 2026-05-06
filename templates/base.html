@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Face Recognition Attendance System{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body class="app-shell {% block body_class %}{% endblock %}">
+  {% if active_page is defined %}
+    <div class="min-h-screen lg:grid lg:grid-cols-[260px_1fr]">
+      <aside class="app-sidebar">
+        <a class="brand-link" href="{{ url_for('dashboard') }}">
+          <img class="brand-logo" src="{{ url_for('static', filename='assets/face-logo.svg') }}" alt="Face Attendance logo">
+          <span>Face Attendance</span>
+        </a>
+        <nav class="nav-list" aria-label="Main navigation">
+          <a class="nav-link {{ 'nav-link-active' if active_page == 'dashboard' else 'nav-link-idle' }}" href="{{ url_for('dashboard') }}">Dashboard</a>
+          <a class="nav-link {{ 'nav-link-active' if active_page == 'attendance' else 'nav-link-idle' }}" href="{{ url_for('attendance') }}">Live Attendance</a>
+          <a class="nav-link {{ 'nav-link-active' if active_page == 'register' else 'nav-link-idle' }}" href="{{ url_for('register') }}">Register User</a>
+          <a class="nav-link {{ 'nav-link-active' if active_page == 'records' else 'nav-link-idle' }}" href="{{ url_for('records') }}">Records</a>
+          <a class="nav-link nav-link-idle" href="{{ url_for('logout') }}">Logout</a>
+        </nav>
+      </aside>
+
+      <main class="content-shell">
+  {% endif %}
+
+  {% block content %}{% endblock %}
+
+  {% if active_page is defined %}
+      </main>
+    </div>
+  {% endif %}
+
+  <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
+</body>
+</html>

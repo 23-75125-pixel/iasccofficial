@@ -1,0 +1,8 @@
+__pycache__/
+*.py[cod]
+.venv/
+node_modules/
+instance/
+.env
+k8s/attendance-system-secret.yaml
+k8s/registry-secret.yaml

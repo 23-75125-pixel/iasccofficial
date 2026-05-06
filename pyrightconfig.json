@@ -1,0 +1,9 @@
+{
+  "venvPath": ".",
+  "venv": ".venv",
+  "include": [
+    "app.py",
+    "database.py",
+    "face_engine.py"
+  ]
+}

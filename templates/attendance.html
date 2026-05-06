@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Live Attendance | Face Recognition Attendance System{% endblock %}
+
+{% block content %}
+<header class="page-header">
+  <h1 class="page-title">Live Attendance</h1>
+  <p class="page-subtitle">Start the camera and scan one registered face at a time.</p>
+</header>
+
+<section class="grid gap-5 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
+  <div class="panel-card p-4 sm:p-5">
+    <div class="camera-frame min-h-80 xl:min-h-[430px]">
+      <video class="camera-video" id="attendanceVideo" autoplay playsinline muted></video>
+      <canvas id="attendanceCanvas" hidden></canvas>
+      <div class="face-box" id="attendanceFaceBox" hidden>
+        <span class="face-box-label" id="attendanceFaceBoxLabel">Detected face</span>
+      </div>
+      <div class="camera-fallback" id="attendanceCameraFallback" hidden>Camera unavailable</div>
+    </div>
+    <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <span class="text-sm font-semibold text-muted" id="attendanceStatus">Waiting for camera</span>
+      <button class="btn btn-primary" type="button" id="startAttendance">Start Attendance</button>
+    </div>
+  </div>
+
+  <aside class="panel-card panel-pad">
+    <div class="mb-4">
+      <h2 class="section-title">Detection Status</h2>
+      <p class="section-subtitle">Recognition results from the live camera</p>
+    </div>
+    <div class="grid gap-3" id="attendanceLog">
+      <div class="empty-state">No detection attempts yet.</div>
+    </div>
+  </aside>
+</section>
+{% endblock %}

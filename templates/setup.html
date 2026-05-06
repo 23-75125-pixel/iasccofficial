@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Setup | Face Recognition Attendance System{% endblock %}
+{% block body_class %}grid place-items-center px-4 py-8{% endblock %}
+
+{% block content %}
+<main class="w-full max-w-md">
+  <section class="auth-card">
+    <div class="mb-8 flex items-center gap-3">
+      <img class="h-11 w-11 rounded-xl shadow-sm" src="{{ url_for('static', filename='assets/face-logo.svg') }}" alt="Face Attendance logo">
+      <div>
+        <h1 class="text-xl font-bold tracking-tight text-strong">Initial Setup</h1>
+        <p class="mt-0.5 text-sm text-muted">Create the first admin account</p>
+      </div>
+    </div>
+
+    <form class="grid gap-4" method="post" action="{{ url_for('setup') }}">
+      <div class="grid gap-1.5">
+        <label class="form-label" for="email">Admin Email</label>
+        <input class="form-input" id="email" name="email" type="email" autocomplete="username" required>
+      </div>
+
+      <div class="grid gap-1.5">
+        <label class="form-label" for="password">Password</label>
+        <input class="form-input" id="password" name="password" type="password" minlength="8" autocomplete="new-password" required>
+      </div>
+
+      <div class="grid gap-1.5">
+        <label class="form-label" for="confirm_password">Confirm Password</label>
+        <input class="form-input" id="confirm_password" name="confirm_password" type="password" minlength="8" autocomplete="new-password" required>
+      </div>
+
+      <button class="btn btn-primary" type="submit">Create Admin</button>
+      <p class="min-h-5 text-sm {{ 'message-error' if error else 'text-muted' }}">{{ error or "Setup is only shown when no admin account exists." }}</p>
+    </form>
+  </section>
+</main>
+{% endblock %}
