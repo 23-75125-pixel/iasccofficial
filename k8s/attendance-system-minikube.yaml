@@ -32,10 +32,12 @@ metadata:
   name: face-attendance-web
   namespace: face-attendance
 spec:
-  replicas: 5
+  replicas: 1
   selector:
     matchLabels:
       app: face-attendance-web
+  strategy:
+    type: Recreate
   template:
     metadata:
       labels:
@@ -65,7 +67,7 @@ spec:
             - name: DEFAULT_ADMIN_ENABLED
               value: "1"
             - name: FACE_MATCH_THRESHOLD
-              value: "88"
+              value: "72"
             - name: SECRET_KEY
               valueFrom:
                 secretKeyRef:
@@ -82,12 +84,14 @@ spec:
               path: /readyz
               port: 5000
             initialDelaySeconds: 10
+            timeoutSeconds: 5
             periodSeconds: 10
           livenessProbe:
             httpGet:
               path: /healthz
               port: 5000
             initialDelaySeconds: 20
+            timeoutSeconds: 5
             periodSeconds: 20
           resources:
             requests:

@@ -37,7 +37,7 @@ def create_app(config=None):
         DEFAULT_ADMIN_EMAIL=os.getenv("DEFAULT_ADMIN_EMAIL", "admin@example.com"),
         DEFAULT_ADMIN_PASSWORD=os.getenv("DEFAULT_ADMIN_PASSWORD", "Admin@12345"),
         DEFAULT_ADMIN_ENABLED=_is_truthy(os.getenv("DEFAULT_ADMIN_ENABLED", "1")),
-        FACE_MATCH_THRESHOLD=float(os.getenv("FACE_MATCH_THRESHOLD", "88")),
+        FACE_MATCH_THRESHOLD=float(os.getenv("FACE_MATCH_THRESHOLD", "72")),
         SECRET_KEY=os.getenv("SECRET_KEY") or _load_secret_key(Path(app.instance_path) / "secret_key"),
     )
     if config:

@@ -21,6 +21,7 @@ class FaceEngine:
     FACE_SIZE = (200, 200)
     MAX_IMAGE_BYTES = 7 * 1024 * 1024
     MIN_VALID_REGISTRATION_FACES = 3
+    MIN_RECOGNITION_AGREEMENT = 2
     MIN_FACE_AREA_RATIO = 0.012
     MIN_FACE_SHARPNESS = 18.0
     MIN_FACE_BRIGHTNESS = 35.0
@@ -56,7 +57,7 @@ class FaceEngine:
             return self.threshold
         try:
             labels_payload = json.loads(self.labels_path.read_text(encoding="utf-8"))
-            return float(labels_payload.get("threshold", self.threshold))
+            return min(float(labels_payload.get("threshold", self.threshold)), self.threshold)
         except (OSError, ValueError, TypeError):
             return self.threshold
 
@@ -303,7 +304,7 @@ class FaceEngine:
 
         recognizer = self._create_recognizer()
         recognizer.train(faces, np.array(labels, dtype=np.int32))
-        calibrated_threshold = self._calibrate_threshold(recognizer, faces, labels)
+        calibrated_threshold = self._calibrate_threshold()
 
         temp_model = self.model_path.with_suffix(".tmp.yml")
         temp_labels = self.labels_path.with_suffix(".tmp.json")
@@ -347,33 +348,24 @@ class FaceEngine:
             cv2.convertScaleAbs(face, alpha=0.94, beta=-6),
         ]
 
-    def _calibrate_threshold(self, recognizer, faces, labels):
-        distances = []
-        for face, expected_label in zip(faces, labels):
-            predicted_label, distance = recognizer.predict(face)
-            if int(predicted_label) == int(expected_label):
-                distances.append(float(distance))
-        if not distances:
-            return self.threshold
-
-        mean_distance = sum(distances) / len(distances)
-        max_distance = max(distances)
-        calibrated = max(self.threshold, mean_distance + 28.0, max_distance + 18.0)
-        return round(min(calibrated, 115.0), 2)
+    def _calibrate_threshold(self):
+        return round(self.threshold, 2)
 
     def recognize(self, image_data):
         if not self.model_path.exists() or not self.labels_path.exists():
             raise FaceEngineError("Recognition model is not trained yet. Register a student first.")
 
         image = self.decode_image(image_data)
-        face, box, detection_backend = self._extract_face_with_box(image, strict=False)
+        face, box, detection_backend = self._extract_face_with_box(image, strict=True)
         recognizer = self._create_recognizer()
         recognizer.read(str(self.model_path))
 
-        label, confidence = self._predict_best_match(recognizer, face)
+        prediction = self._predict_best_match(recognizer, face)
+        label = prediction["label"]
+        confidence = prediction["confidence"]
         labels_payload = json.loads(self.labels_path.read_text(encoding="utf-8"))
         student_db_id = labels_payload.get("labels", {}).get(str(label))
-        threshold = float(labels_payload.get("threshold", self.threshold))
+        threshold = min(float(labels_payload.get("threshold", self.threshold)), self.threshold)
         confidence = float(confidence)
         detection_payload = {
             "box": {
@@ -388,12 +380,17 @@ class FaceEngine:
             },
             "detection_backend": detection_backend,
         }
+        ambiguous_match = (
+            len(labels_payload.get("labels", {})) > 1
+            and int(prediction["agreement"]) < self.MIN_RECOGNITION_AGREEMENT
+        )
 
-        if student_db_id is None or confidence > threshold:
+        if student_db_id is None or confidence > threshold or ambiguous_match:
             return {
                 "matched": False,
                 "confidence": round(confidence, 2),
                 "threshold": threshold,
+                "agreement": int(prediction["agreement"]),
                 **detection_payload,
             }
 
@@ -402,12 +399,24 @@ class FaceEngine:
             "student_id": int(student_db_id),
             "confidence": round(confidence, 2),
             "threshold": threshold,
+            "agreement": int(prediction["agreement"]),
             **detection_payload,
         }
 
     def _predict_best_match(self, recognizer, face):
-        predictions = [recognizer.predict(variant) for variant in self._recognition_variants(face)]
-        return min(predictions, key=lambda prediction: float(prediction[1]))
+        predictions = [
+            (int(label), float(distance))
+            for label, distance in (
+                recognizer.predict(variant) for variant in self._recognition_variants(face)
+            )
+        ]
+        primary_label, primary_distance = predictions[0]
+        agreement = sum(1 for label, _distance in predictions if label == primary_label)
+        return {
+            "label": primary_label,
+            "confidence": primary_distance,
+            "agreement": agreement,
+        }
 
     def clear_model(self):
         for path in (self.model_path, self.labels_path):

@@ -28,10 +28,10 @@ The Tailwind CSS is compiled locally into `static/css/styles.css`, so the app do
 - Docker container configuration
 - Kubernetes Deployment, Service, PVC, and 5 replicas
 
-The default LBPH match threshold is `88`. You can tune it with:
+The default LBPH match threshold is `72`. Lower values are stricter and reduce wrong-student matches. You can tune it with:
 
 ```bash
-FACE_MATCH_THRESHOLD=92 .venv/bin/flask --app app run --debug
+FACE_MATCH_THRESHOLD=68 .venv/bin/flask --app app run --debug
 ```
 
 After changing recognition settings, rebuild the saved model:
@@ -142,7 +142,7 @@ Open the HTTPS forwarding URL shown by ngrok. The HTTPS URL is best for browser 
 
 ### Minikube
 
-Use the Minikube manifest for local testing. It uses the local Docker image, so you do not need to push to a registry. The local manifest uses a `ReadWriteOnce` PVC and `replicas: 5`.
+Use the Minikube manifest for local testing. It uses the local Docker image, so you do not need to push to a registry. The local manifest uses a `ReadWriteOnce` PVC and `replicas: 1` for stable SQLite and browser camera testing.
 
 #### First setup
 
@@ -154,7 +154,7 @@ docker build -t face-attendance-system:latest .
 minikube image load face-attendance-system:latest
 kubectl apply -f k8s/attendance-system-minikube.yaml
 kubectl rollout status deployment/face-attendance-web -n face-attendance
-kubectl port-forward -n face-attendance svc/face-attendance-service 5000:80
+./scripts/minikube-port-forward.sh
 ```
 
 Then visit `http://localhost:5000`.
@@ -168,7 +168,7 @@ cd ~/aisccs
 
 minikube start --memory=2200mb
 kubectl rollout status deployment/face-attendance-web -n face-attendance
-kubectl port-forward -n face-attendance svc/face-attendance-service 5000:80
+./scripts/minikube-port-forward.sh
 ```
 
 Then visit `http://localhost:5000`.
@@ -192,7 +192,7 @@ minikube image load "$IMAGE"
 kubectl apply -f k8s/attendance-system-minikube.yaml
 kubectl set image deployment/face-attendance-web web="$IMAGE" -n face-attendance
 kubectl rollout status deployment/face-attendance-web -n face-attendance
-kubectl port-forward -n face-attendance svc/face-attendance-service 5000:80
+./scripts/minikube-port-forward.sh
 ```
 
 If the browser still shows old content, hard refresh with `Ctrl + Shift + R`.
@@ -211,15 +211,15 @@ kubectl wait --for=delete pod -l app=face-attendance-web -n face-attendance --ti
 
 minikube ssh -- "sudo find /tmp/hostpath-provisioner/face-attendance/face-attendance-instance -mindepth 1 -maxdepth 1 -exec rm -rf {} +"
 
-kubectl scale deployment/face-attendance-web --replicas=5 -n face-attendance
+kubectl scale deployment/face-attendance-web --replicas=1 -n face-attendance
 kubectl rollout status deployment/face-attendance-web -n face-attendance
 
-kubectl port-forward -n face-attendance svc/face-attendance-service 5000:80
+./scripts/minikube-port-forward.sh
 ```
 
 #### Stop Minikube
 
-Press `Ctrl+C` in the terminal running `kubectl port-forward`, then stop Minikube:
+Press `Ctrl+C` in the terminal running `./scripts/minikube-port-forward.sh`, then stop Minikube:
 
 ```bash
 minikube stop
@@ -240,7 +240,7 @@ kubectl delete -f k8s/attendance-system-minikube.yaml
 Run port-forward in one terminal:
 
 ```bash
-kubectl port-forward -n face-attendance svc/face-attendance-service 5000:80
+./scripts/minikube-port-forward.sh
 ```
 
 Run ngrok in another terminal:
@@ -249,7 +249,7 @@ Run ngrok in another terminal:
 ngrok http 5000
 ```
 
-For a 5-replica demo, prefer exposing the Minikube NodePort directly instead of using `kubectl port-forward`:
+For a multi-replica demo, prefer exposing the Minikube NodePort directly instead of using `kubectl port-forward`:
 
 ```bash
 ngrok http "$(minikube ip):30080"
