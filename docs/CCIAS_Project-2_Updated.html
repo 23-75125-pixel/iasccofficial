@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>CCIAS Project 2 - Updated Face Recognition Attendance System</title>
+  <style>
+    @page {
+      size: 8.5in 13in;
+      margin: 0.85in;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      color: #111827;
+      font-family: "Arial", "Helvetica", sans-serif;
+      font-size: 11pt;
+      line-height: 1.45;
+      margin: 0;
+    }
+
+    h1,
+    h2,
+    h3 {
+      color: #7f1d1d;
+      line-height: 1.2;
+      margin: 0 0 0.18in;
+    }
+
+    h1 {
+      font-size: 20pt;
+      text-align: center;
+    }
+
+    h2 {
+      border-bottom: 1px solid #d1d5db;
+      font-size: 15pt;
+      margin-top: 0.12in;
+      padding-bottom: 0.06in;
+    }
+
+    h3 {
+      color: #1f2937;
+      font-size: 12pt;
+      margin-top: 0.16in;
+    }
+
+    p {
+      margin: 0 0 0.1in;
+    }
+
+    ul,
+    ol {
+      margin: 0 0 0.14in 0.25in;
+      padding-left: 0.18in;
+    }
+
+    li {
+      margin-bottom: 0.05in;
+    }
+
+    code,
+    pre {
+      font-family: "Courier New", monospace;
+      font-size: 9pt;
+    }
+
+    pre {
+      background: #f3f4f6;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      margin: 0.08in 0 0.14in;
+      padding: 0.12in;
+      white-space: pre-wrap;
+    }
+
+    table {
+      border-collapse: collapse;
+      margin: 0.08in 0 0.16in;
+      width: 100%;
+    }
+
+    th,
+    td {
+      border: 1px solid #d1d5db;
+      padding: 0.07in;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f9fafb;
+      color: #7f1d1d;
+      font-weight: 700;
+    }
+
+    .cover {
+      text-align: center;
+    }
+
+    .school {
+      color: #7f1d1d;
+      font-size: 14pt;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      margin-bottom: 0.06in;
+      text-transform: uppercase;
+    }
+
+    .subtle {
+      color: #4b5563;
+    }
+
+    .title-block {
+      margin: 1.05in auto 0.75in;
+      max-width: 6.6in;
+    }
+
+    .authors {
+      line-height: 1.7;
+      margin: 0.5in 0;
+    }
+
+    .page-break {
+      page-break-before: always;
+    }
+
+    .caption {
+      color: #4b5563;
+      font-size: 9.5pt;
+      margin-top: 0.04in;
+      text-align: center;
+    }
+
+    .diagram {
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      margin: 0.12in 0 0.08in;
+      padding: 0.12in;
+      text-align: center;
+    }
+
+    .flow {
+      color: #111827;
+      font-family: "Courier New", monospace;
+      font-size: 9.5pt;
+      line-height: 1.65;
+      white-space: pre-wrap;
+    }
+
+    .footer-note {
+      border-top: 1px solid #d1d5db;
+      color: #4b5563;
+      font-size: 9pt;
+      margin-top: 0.25in;
+      padding-top: 0.08in;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <section class="cover">
+    <p class="school">Republic of the Philippines</p>
+    <p class="school">Batangas State University</p>
+    <p>The National Engineering University</p>
+    <p>ARASOF-Nasugbu Campus</p>
+    <p>R. Martinez St., Brgy. Bucana, Nasugbu, Batangas, Philippines 4231</p>
+    <p class="subtle">College of Informatics and Computing Sciences</p>
+
+    <div class="title-block">
+      <h1>Face Recognition Attendance System using Flask, OpenCV, Docker, Kubernetes, and Ngrok</h1>
+      <p class="subtle">Updated system documentation based on the current project structure</p>
+    </div>
+
+    <div class="authors">
+      <p>Ata, Lira Angela</p>
+      <p>Creencia, Eloisa Joyce</p>
+      <p>Buenaobra, Allysa</p>
+      <p>Boiser, Jhon Paulo</p>
+    </div>
+
+    <p>Nasugbu, Batangas</p>
+    <p>2026</p>
+
+    <div class="footer-note">Semestral Project in IT 323 and NTT 404 | Second Semester, AY 2025-2026</div>
+  </section>
+
+  <section class="page-break">
+    <h2>System Overview</h2>
+    <p>
+      The updated system is a web-based Face Recognition Attendance System that automates student attendance through a browser camera, a Flask backend, and OpenCV-based face processing. The current implementation does not use YOLOv8 or MySQL. It uses OpenCV Haar Cascade for face detection, OpenCV LBPH Face Recognizer for recognition, and SQLite for persistent attendance data.
+    </p>
+    <p>
+      The application is containerized with Docker, served by Gunicorn, deployed to Kubernetes or Minikube, and exposed publicly for demonstrations using ngrok. Runtime data such as the SQLite database, registered face samples, attendance snapshots, and trained recognition model are stored in the application instance directory and mounted into Kubernetes through a PersistentVolumeClaim.
+    </p>
+
+    <h2>Purpose of the System</h2>
+    <ul>
+      <li>Automate attendance recording using live camera-based face recognition.</li>
+      <li>Provide an admin-controlled web interface for registering students and reviewing records.</li>
+      <li>Demonstrate containerized deployment using Docker.</li>
+      <li>Demonstrate Kubernetes deployment using Deployment, Service, Secret, and PersistentVolumeClaim resources.</li>
+      <li>Expose the local Kubernetes service through ngrok for HTTPS browser access during presentation.</li>
+    </ul>
+
+    <h2>Main Features</h2>
+    <h3>User and Admin Features</h3>
+    <ul>
+      <li>Admin login and protected dashboard pages.</li>
+      <li>Default admin creation on first run, configurable through environment variables or Kubernetes Secrets.</li>
+      <li>Student registration with live camera capture and at least three face samples.</li>
+      <li>Auto-generated Student ID values such as <code>STU-0001</code>, <code>STU-0002</code>, and following numbers.</li>
+      <li>Course chooser limited to <code>BSIT-NT 3201</code> and <code>BSIT-NT 3202</code>.</li>
+      <li>Live attendance recognition through the browser camera.</li>
+      <li>Attendance dashboard, recent activity summary, searchable records, and CSV export.</li>
+    </ul>
+
+    <h3>Computer Vision Features</h3>
+    <ul>
+      <li>OpenCV Haar Cascade face detection.</li>
+      <li>OpenCV LBPH face recognition model.</li>
+      <li>Configurable face match threshold through <code>FACE_MATCH_THRESHOLD</code>.</li>
+      <li>Automatic model retraining after student registration.</li>
+      <li>Saved normalized student face samples and attendance snapshots.</li>
+    </ul>
+  </section>
+
+  <section class="page-break">
+    <h2>Current Project Structure</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Path</th>
+          <th>Purpose</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>app.py</code></td>
+          <td>Main Flask application, routes, REST APIs, admin authentication, registration, attendance recognition, CSV export, and CLI commands.</td>
+        </tr>
+        <tr>
+          <td><code>database.py</code></td>
+          <td>SQLite schema and database connection helpers for admins, students, face samples, and attendance logs.</td>
+        </tr>
+        <tr>
+          <td><code>face_engine.py</code></td>
+          <td>OpenCV face detection, registration preprocessing, LBPH recognition, snapshot saving, and model training.</td>
+        </tr>
+        <tr>
+          <td><code>templates/</code></td>
+          <td>Flask HTML templates for login, setup, dashboard, register user, live attendance, and records pages.</td>
+        </tr>
+        <tr>
+          <td><code>static/js/script.js</code></td>
+          <td>Browser camera handling, registration captures, attendance scan requests, dashboard rendering, and records table updates.</td>
+        </tr>
+        <tr>
+          <td><code>static/css/input.css</code> and <code>static/css/styles.css</code></td>
+          <td>Tailwind source CSS and compiled application styles.</td>
+        </tr>
+        <tr>
+          <td><code>Dockerfile</code></td>
+          <td>Python 3.12 slim image definition with Flask, Gunicorn, and OpenCV dependencies.</td>
+        </tr>
+        <tr>
+          <td><code>k8s/attendance-system.yaml</code></td>
+          <td>Production Kubernetes manifest using the GHCR image, Namespace, Deployment, Service, and PVC.</td>
+        </tr>
+        <tr>
+          <td><code>k8s/attendance-system-minikube.yaml</code></td>
+          <td>Local Minikube manifest using the local Docker image and a Minikube-friendly PVC.</td>
+        </tr>
+        <tr>
+          <td><code>k8s/attendance-system-secret.example.yaml</code></td>
+          <td>Safe template for required admin and secret configuration.</td>
+        </tr>
+        <tr>
+          <td><code>requirements.txt</code></td>
+          <td>Python dependencies: Flask, Gunicorn, and OpenCV contrib headless.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>System Components</h2>
+    <ol>
+      <li><strong>Frontend:</strong> HTML templates, compiled Tailwind CSS, and JavaScript camera workflows.</li>
+      <li><strong>Backend:</strong> Flask routes and JSON APIs running under Gunicorn on port 5000.</li>
+      <li><strong>Database:</strong> SQLite file stored at <code>/app/instance/attendance.sqlite3</code>.</li>
+      <li><strong>Computer Vision:</strong> OpenCV Haar Cascade detection and LBPH recognition.</li>
+      <li><strong>Container:</strong> Docker image built from <code>python:3.12-slim</code>.</li>
+      <li><strong>Orchestration:</strong> Kubernetes Deployment, Service, Secret, and PersistentVolumeClaim.</li>
+      <li><strong>Public Access:</strong> ngrok forwards localhost to an HTTPS URL for camera-friendly browser testing.</li>
+    </ol>
+  </section>
+
+  <section class="page-break">
+    <h2>Database Design</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Table</th>
+          <th>Stored Data</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>admins</code></td>
+          <td>Admin email, hashed password, and creation timestamp.</td>
+        </tr>
+        <tr>
+          <td><code>students</code></td>
+          <td>Generated student number, full name, course, active status, and timestamps.</td>
+        </tr>
+        <tr>
+          <td><code>face_samples</code></td>
+          <td>File paths for registered face images linked to a student.</td>
+        </tr>
+        <tr>
+          <td><code>attendance_logs</code></td>
+          <td>Date, time, status, confidence score, and optional attendance snapshot path.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Recognition Workflow</h2>
+    <ol>
+      <li>The admin logs in and opens the Register User page.</li>
+      <li>The browser camera captures at least three face samples for the student.</li>
+      <li>The system generates the next Student ID automatically and saves the selected course.</li>
+      <li>OpenCV prepares the detected face regions and saves normalized samples.</li>
+      <li>The LBPH model is retrained using active students' saved face samples.</li>
+      <li>During attendance, the browser sends camera frames to the recognition API.</li>
+      <li>If a face matches a registered student above the threshold, attendance is logged once per day.</li>
+    </ol>
+
+    <h2>Important API Endpoints</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Endpoint</th>
+          <th>Purpose</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>GET /healthz</code></td>
+          <td>Kubernetes liveness check.</td>
+        </tr>
+        <tr>
+          <td><code>GET /readyz</code></td>
+          <td>Kubernetes readiness check and database availability check.</td>
+        </tr>
+        <tr>
+          <td><code>GET /api/students</code></td>
+          <td>Returns registered students and sample counts.</td>
+        </tr>
+        <tr>
+          <td><code>GET /api/students/next-id</code></td>
+          <td>Returns the next generated Student ID.</td>
+        </tr>
+        <tr>
+          <td><code>POST /api/students</code></td>
+          <td>Registers a student, saves face samples, and retrains the model.</td>
+        </tr>
+        <tr>
+          <td><code>POST /api/attendance/recognize</code></td>
+          <td>Recognizes a face from a camera frame and records attendance.</td>
+        </tr>
+        <tr>
+          <td><code>GET /api/records/export</code></td>
+          <td>Exports attendance records to CSV.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="page-break">
+    <h2>Docker Configuration</h2>
+    <p>The current Dockerfile uses Python 3.12 slim, installs OpenCV runtime libraries, installs dependencies from <code>requirements.txt</code>, exposes port 5000, and starts the Flask app using Gunicorn.</p>
+    <pre>FROM python:3.12-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --upgrade pip &amp;&amp; pip install -r requirements.txt
+COPY . .
+EXPOSE 5000
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "--threads", "4", "--timeout", "120", "app:app"]</pre>
+
+    <h3>Local Docker Commands</h3>
+    <pre>docker build -t face-attendance-system:latest .
+docker run --rm -p 5000:5000 -v "$PWD/instance:/app/instance" face-attendance-system:latest</pre>
+
+    <h2>Kubernetes Deployment</h2>
+    <p>The Kubernetes deployment uses a Namespace, Secret, PersistentVolumeClaim, Deployment, and NodePort Service. The service exposes port 80 and forwards traffic to the Flask container on port 5000. Health checks use <code>/healthz</code> and <code>/readyz</code>.</p>
+
+    <h3>Production Manifest</h3>
+    <ul>
+      <li>Image: <code>ghcr.io/23-75125-pixel/iasccofficial:latest</code></li>
+      <li>Image pull policy: <code>Always</code></li>
+      <li>Replicas: <code>5</code></li>
+      <li>Persistent storage: <code>ReadWriteMany</code>, 5Gi</li>
+      <li>Service: NodePort <code>30080</code></li>
+      <li>Secret values loaded from <code>face-attendance-secret</code></li>
+    </ul>
+
+    <h3>Minikube Manifest</h3>
+    <ul>
+      <li>Image: <code>face-attendance-system:latest</code></li>
+      <li>Image pull policy: <code>Never</code></li>
+      <li>Replicas: <code>5</code> in the current local manifest.</li>
+      <li>Persistent storage: <code>ReadWriteOnce</code>, 2Gi</li>
+      <li>Service: NodePort <code>30080</code></li>
+      <li>Used for local testing without pushing to a registry.</li>
+    </ul>
+
+    <h3>Minikube Run Commands</h3>
+    <pre>minikube start
+docker build -t face-attendance-system:latest .
+minikube image load face-attendance-system:latest
+kubectl apply -f k8s/attendance-system-minikube.yaml
+kubectl rollout status deployment/face-attendance-web -n face-attendance</pre>
+
+    <h3>Expose with Port Forward and Ngrok</h3>
+    <pre>kubectl port-forward -n face-attendance svc/face-attendance-service 5000:80
+ngrok http 5000</pre>
+  </section>
+
+  <section class="page-break">
+    <h2>System Architecture</h2>
+    <p>
+      The system follows a browser-to-Kubernetes web application architecture. The browser captures camera frames, sends them to the Flask API through the Kubernetes Service, and receives recognition results. The Flask container performs OpenCV detection and recognition, then stores attendance records and face data in the mounted instance directory.
+    </p>
+
+    <div class="diagram">
+      <div class="flow">Browser Camera
+    |
+    v
+ngrok HTTPS URL or localhost:5000
+    |
+    v
+kubectl port-forward / Kubernetes NodePort Service
+    |
+    v
+Kubernetes Deployment: face-attendance-web
+    |
+    v
+Docker Container: Flask + Gunicorn + OpenCV
+    |
+    v
+SQLite DB + Face Samples + LBPH Model on PersistentVolumeClaim</div>
+    </div>
+    <p class="caption">Figure 1. Updated system architecture based on the current project.</p>
+
+    <h2>Security Features</h2>
+    <ul>
+      <li>Admin authentication is required before using dashboard, registration, attendance, and records pages.</li>
+      <li>Passwords are stored as hashed values using Werkzeug security helpers.</li>
+      <li>Kubernetes Secrets store default admin credentials and the Flask secret key.</li>
+      <li>ngrok provides an HTTPS URL during demonstrations, which is useful for browser camera permissions.</li>
+      <li>Attendance logs include timestamps and confidence values for audit review.</li>
+    </ul>
+
+    <h2>Expected Output</h2>
+    <ul>
+      <li>Admin can log in and access the dashboard.</li>
+      <li>Admin can register students with automatically generated Student IDs.</li>
+      <li>Admin can choose only <code>BSIT-NT 3201</code> or <code>BSIT-NT 3202</code> during registration.</li>
+      <li>Browser camera can capture student face samples and scan attendance.</li>
+      <li>The system logs recognized students as Present with date, time, and confidence.</li>
+      <li>Records can be searched and exported to CSV.</li>
+      <li>The Docker image can run locally and inside Minikube/Kubernetes.</li>
+      <li>The app can be exposed with ngrok for a public HTTPS demonstration link.</li>
+    </ul>
+
+    <h2>Approval</h2>
+    <p>Approved by:</p>
+    <p><strong>Mr. CALVIN JOHN V. PLACIO</strong></p>
+    <p>Course Facilitator</p>
+    <p>Date Signed: ____________________</p>
+  </section>
+</body>
+</html>

@@ -17,12 +17,17 @@
 
     <div class="grid gap-1.5">
       <label class="form-label" for="studentId">Student ID</label>
-      <input class="form-input" id="studentId" name="studentId" type="text" maxlength="40" required>
+      <input class="form-input" id="studentId" name="studentId" type="text" maxlength="40" readonly aria-readonly="true" required>
     </div>
 
     <div class="grid gap-1.5">
       <label class="form-label" for="course">Course</label>
-      <input class="form-input" id="course" name="course" type="text" maxlength="100" required>
+      <select class="form-input" id="course" name="course" required>
+        <option value="" selected disabled>Choose course</option>
+        {% for course in allowed_courses %}
+          <option value="{{ course }}">{{ course }}</option>
+        {% endfor %}
+      </select>
     </div>
 
     <div class="flex flex-col gap-2 pt-1 sm:flex-row">

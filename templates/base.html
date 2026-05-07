@@ -16,8 +16,8 @@
         </a>
         <nav class="nav-list" aria-label="Main navigation">
           <a class="nav-link {{ 'nav-link-active' if active_page == 'dashboard' else 'nav-link-idle' }}" href="{{ url_for('dashboard') }}">Dashboard</a>
-          <a class="nav-link {{ 'nav-link-active' if active_page == 'attendance' else 'nav-link-idle' }}" href="{{ url_for('attendance') }}">Live Attendance</a>
           <a class="nav-link {{ 'nav-link-active' if active_page == 'register' else 'nav-link-idle' }}" href="{{ url_for('register') }}">Register User</a>
+          <a class="nav-link {{ 'nav-link-active' if active_page == 'attendance' else 'nav-link-idle' }}" href="{{ url_for('attendance') }}">Live Attendance</a>
           <a class="nav-link {{ 'nav-link-active' if active_page == 'records' else 'nav-link-idle' }}" href="{{ url_for('records') }}">Records</a>
           <a class="nav-link nav-link-idle" href="{{ url_for('logout') }}">Logout</a>
         </nav>

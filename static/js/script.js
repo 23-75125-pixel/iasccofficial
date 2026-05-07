@@ -339,7 +339,6 @@ async function setupRegisterUser() {
     try {
       const payload = {
         full_name: form.elements.name.value.trim(),
-        student_id: form.elements.studentId.value.trim(),
         course: form.elements.course.value.trim(),
         face_images: appState.captures
       };
@@ -352,6 +351,7 @@ async function setupRegisterUser() {
       renderCaptures();
       setMessage(message, result.message, "success");
       await loadStudents();
+      await loadNextStudentId();
     } catch (error) {
       setMessage(message, error.message, "error");
     } finally {
@@ -360,7 +360,20 @@ async function setupRegisterUser() {
   });
 
   renderCaptures();
+  await loadNextStudentId();
   await loadStudents();
+}
+
+async function loadNextStudentId() {
+  const studentIdInput = $("#studentId");
+  if (!studentIdInput) return;
+
+  try {
+    const payload = await apiFetch("/api/students/next-id");
+    studentIdInput.value = payload.student_id;
+  } catch (_error) {
+    studentIdInput.value = "";
+  }
 }
 
 function renderCaptures() {

@@ -24,6 +24,8 @@ from face_engine import FaceEngine, FaceEngineError, FaceEngineUnavailable
 
 
 BASE_DIR = Path(__file__).resolve().parent
+ALLOWED_COURSES = ("BSIT-NT 3201", "BSIT-NT 3202")
+STUDENT_ID_PREFIX = "STU"
 
 
 def create_app(config=None):
@@ -70,6 +72,7 @@ def create_app(config=None):
             "current_year": datetime.now().year,
             "default_admin_email": app.config["DEFAULT_ADMIN_EMAIL"],
             "default_admin_password": app.config["DEFAULT_ADMIN_PASSWORD"],
+            "allowed_courses": ALLOWED_COURSES,
         }
 
     @app.get("/")
@@ -226,33 +229,36 @@ def create_app(config=None):
         ).fetchall()
         return jsonify({"ok": True, "students": [dict(row) for row in rows]})
 
+    @app.get("/api/students/next-id")
+    @login_required
+    def api_next_student_id():
+        return jsonify({"ok": True, "student_id": _next_student_number(get_db())})
+
     @app.post("/api/students")
     @login_required
     def api_create_student():
         payload = request.get_json(silent=True) or {}
         full_name = _clean_text(payload.get("full_name"))
-        student_number = _clean_text(payload.get("student_id")).upper()
-        course = _clean_text(payload.get("course"))
+        course = _clean_text(payload.get("course")).upper()
         face_images = payload.get("face_images") or []
 
         if len(full_name) < 2:
             return _json_error("Full name is required.", 400)
-        if len(student_number) < 2:
-            return _json_error("Student ID is required.", 400)
-        if len(course) < 2:
-            return _json_error("Course is required.", 400)
+        if course not in ALLOWED_COURSES:
+            return _json_error("Choose BSIT-NT 3201 or BSIT-NT 3202.", 400)
         if not isinstance(face_images, list) or len(face_images) < 3:
             return _json_error("Capture at least 3 face samples before saving.", 400)
         if len(face_images) > 12:
             return _json_error("Save up to 12 face samples per registration.", 400)
 
         db = get_db()
+        student_number = _next_student_number(db)
         duplicate = db.execute(
             "SELECT id FROM students WHERE student_number = ?",
             (student_number,),
         ).fetchone()
         if duplicate:
-            return _json_error("A student with that ID already exists.", 409)
+            return _json_error("A generated Student ID already exists. Reload and try again.", 409)
 
         try:
             prepared_faces = face_engine.prepare_registration_faces(face_images)
@@ -621,6 +627,20 @@ def _clean_text(value):
 
 def _now():
     return datetime.now().astimezone()
+
+
+def _next_student_number(db):
+    next_index = 1
+    prefix = f"{STUDENT_ID_PREFIX}-"
+    rows = db.execute("SELECT student_number FROM students").fetchall()
+    for row in rows:
+        value = str(row["student_number"] or "").upper()
+        if not value.startswith(prefix):
+            continue
+        suffix = value[len(prefix) :]
+        if suffix.isdigit():
+            next_index = max(next_index, int(suffix) + 1)
+    return f"{STUDENT_ID_PREFIX}-{next_index:04d}"
 
 
 def _student_payload(row):
