@@ -21,6 +21,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from database import close_db, get_db, init_db
 from face_engine import FaceEngine, FaceEngineError, FaceEngineUnavailable
+from time_utils import now as timezone_now
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -69,7 +70,7 @@ def create_app(config=None):
     def inject_context():
         return {
             "has_admin": has_admin,
-            "current_year": datetime.now().year,
+            "current_year": _now().year,
             "default_admin_email": app.config["DEFAULT_ADMIN_EMAIL"],
             "default_admin_password": app.config["DEFAULT_ADMIN_PASSWORD"],
             "allowed_courses": ALLOWED_COURSES,
@@ -745,7 +746,7 @@ def _clean_date(value):
 
 
 def _now():
-    return datetime.now().astimezone()
+    return timezone_now()
 
 
 def _next_student_number(db):

@@ -40,7 +40,7 @@ After changing recognition settings, rebuild the saved model:
 .venv/bin/flask --app app retrain-model
 ```
 
-Docker and Kubernetes run with `TZ=Asia/Manila`, so attendance dates and times are recorded using Philippine time.
+Docker and Kubernetes run with `APP_TIMEZONE=Asia/Manila` and `TZ=Asia/Manila`, so attendance dates and times are recorded using Philippine time.
 
 ## Default admin
 
@@ -71,7 +71,7 @@ The command will securely prompt for the password and save a hashed password in 
 
 ```bash
 docker build -t face-attendance-system:latest .
-docker run --rm -p 5000:5000 -v "$PWD/instance:/app/instance" face-attendance-system:latest
+docker run --rm -p 5000:5000 -e APP_TIMEZONE=Asia/Manila -e TZ=Asia/Manila -v "$PWD/instance:/app/instance" face-attendance-system:latest
 ```
 
 To push the production image to GitHub Container Registry:
@@ -102,6 +102,7 @@ Deploy both the secret and app manifests:
 
 ```bash
 kubectl apply -f k8s/attendance-system-secret.yaml -f k8s/attendance-system.yaml
+kubectl rollout restart deployment/face-attendance-web -n face-attendance
 kubectl rollout status deployment/face-attendance-web -n face-attendance
 kubectl get pods -n face-attendance
 kubectl get svc -n face-attendance

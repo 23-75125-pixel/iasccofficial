@@ -15,6 +15,7 @@ const COURSE_OPTIONS = ["BSIT-NT 3201", "BSIT-NT 3202"];
 const HAAR_FACE_BOX_SCALE_X = 2.2;
 const HAAR_FACE_BOX_SCALE_Y = 2.8;
 const HAAR_FACE_BOX_Y_OFFSET = -0.65;
+const APP_TIME_ZONE = "Asia/Manila";
 
 const ui = {
   emptyState: "empty-state",
@@ -33,9 +34,14 @@ function $(selector) {
 }
 
 function todayIsoDate() {
-  const now = new Date();
-  const localDate = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
-  return localDate.toISOString().slice(0, 10);
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: APP_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).formatToParts(new Date());
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${values.year}-${values.month}-${values.day}`;
 }
 
 function escapeHtml(value) {

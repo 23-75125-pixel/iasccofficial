@@ -3,9 +3,10 @@ import binascii
 import json
 import re
 import uuid
-from datetime import datetime
 from pathlib import Path
 from typing import Any, cast
+
+from time_utils import now as timezone_now
 
 
 class FaceEngineError(Exception):
@@ -313,7 +314,7 @@ class FaceEngine:
                     "labels": {str(label): student_id for student_id, label in label_by_student_id.items()},
                     "threshold": calibrated_threshold,
                     "base_threshold": self.threshold,
-                    "trained_at": datetime.now().astimezone().isoformat(timespec="seconds"),
+                    "trained_at": timezone_now().isoformat(timespec="seconds"),
                 },
                 indent=2,
             ),

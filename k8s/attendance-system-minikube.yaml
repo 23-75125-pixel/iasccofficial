@@ -48,6 +48,8 @@ spec:
           ports:
             - containerPort: 5000
           env:
+            - name: APP_TIMEZONE
+              value: Asia/Manila
             - name: TZ
               value: Asia/Manila
             - name: DEFAULT_ADMIN_EMAIL
