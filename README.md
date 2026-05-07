@@ -75,17 +75,23 @@ docker run --rm -p 5000:5000 -v "$PWD/instance:/app/instance" face-attendance-sy
 To push the production image to GitHub Container Registry:
 
 ```bash
-echo "$GHCR_TOKEN" | docker login ghcr.io -u JellyAcexx --password-stdin
-docker build -t ghcr.io/jellyacexx/face-attendance-system:latest .
-docker push ghcr.io/jellyacexx/face-attendance-system:latest
+read -rsp "GitHub token with write:packages permission: " GHCR_TOKEN
+echo
+export GHCR_TOKEN
+export IMAGE=ghcr.io/23-75125-pixel/iasccofficial:latest
+echo "$GHCR_TOKEN" | docker login ghcr.io -u superjp --password-stdin
+docker build -t "$IMAGE" .
+docker push "$IMAGE"
 ```
 
 ## Kubernetes
 
+Use this production manifest only after the GHCR image has been pushed successfully. For Minikube on this machine, skip this section and use the Minikube commands below.
+
 The production manifest uses this image:
 
 ```text
-ghcr.io/jellyacexx/face-attendance-system:latest
+ghcr.io/23-75125-pixel/iasccofficial:latest
 ```
 
 The real Kubernetes secret values are in `k8s/attendance-system-secret.yaml`. That file is ignored by git; use `k8s/attendance-system-secret.example.yaml` as the safe template.
@@ -94,6 +100,7 @@ Deploy both the secret and app manifests:
 
 ```bash
 kubectl apply -f k8s/attendance-system-secret.yaml -f k8s/attendance-system.yaml
+kubectl rollout status deployment/face-attendance-web -n face-attendance
 kubectl get pods -n face-attendance
 kubectl get svc -n face-attendance
 ```
@@ -105,13 +112,34 @@ If your GHCR package is private, create an image pull secret and add `imagePullS
 kubectl create secret docker-registry ghcr-login \
   --namespace face-attendance \
   --docker-server=ghcr.io \
-  --docker-username=JellyAcexx \
+  --docker-username=superjp \
   --docker-password="$GHCR_TOKEN"
+
+kubectl patch deployment face-attendance-web \
+  --namespace face-attendance \
+  --type merge \
+  --patch '{"spec":{"template":{"spec":{"imagePullSecrets":[{"name":"ghcr-login"}]}}}}'
 ```
+
+## Expose with ngrok
+
+Keep Kubernetes running, then forward the service to localhost in one terminal:
+
+```bash
+kubectl port-forward -n face-attendance svc/face-attendance-service 5000:80
+```
+
+In another terminal, expose that forwarded port with ngrok:
+
+```bash
+ngrok http 5000
+```
+
+Open the HTTPS forwarding URL shown by ngrok. The HTTPS URL is best for browser camera access.
 
 ### Minikube
 
-Use the Minikube manifest for local testing. It uses one replica and the local Docker image, so you do not need to push to a registry.
+Use the Minikube manifest for local testing. It uses one replica, a `ReadWriteOnce` PVC, and the local Docker image, so you do not need to push to a registry.
 
 ```bash
 minikube start

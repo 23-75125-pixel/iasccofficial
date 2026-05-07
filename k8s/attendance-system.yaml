@@ -32,7 +32,7 @@ spec:
     spec:
       containers:
         - name: web
-          image: ghcr.io/jellyacexx/face-attendance-system:latest
+          image: ghcr.io/23-75125-pixel/iasccofficial:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 5000
