@@ -181,9 +181,16 @@ Use this when you edited files and need the app inside Minikube to use the new c
 cd ~/aisccs
 
 minikube start --memory=2200mb
-docker build -t face-attendance-system:latest .
-minikube image load face-attendance-system:latest
-kubectl rollout restart deployment/face-attendance-web -n face-attendance
+
+TAG="dev-$(date +%Y%m%d%H%M%S)"
+IMAGE="face-attendance-system:${TAG}"
+
+[ -d node_modules ] || npm install
+npm run build:css
+docker build --build-arg APP_VERSION="$TAG" -t "$IMAGE" .
+minikube image load "$IMAGE"
+kubectl apply -f k8s/attendance-system-minikube.yaml
+kubectl set image deployment/face-attendance-web web="$IMAGE" -n face-attendance
 kubectl rollout status deployment/face-attendance-web -n face-attendance
 kubectl port-forward -n face-attendance svc/face-attendance-service 5000:80
 ```

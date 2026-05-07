@@ -74,6 +74,7 @@ def create_app(config=None):
             "default_admin_email": app.config["DEFAULT_ADMIN_EMAIL"],
             "default_admin_password": app.config["DEFAULT_ADMIN_PASSWORD"],
             "allowed_courses": ALLOWED_COURSES,
+            "static_version": _static_version(),
         }
 
     @app.get("/")
@@ -747,6 +748,19 @@ def _clean_date(value):
 
 def _now():
     return timezone_now()
+
+
+def _static_version():
+    app_version = _clean_text(os.getenv("APP_VERSION"))
+    if app_version:
+        return app_version
+
+    newest_mtime = 0
+    for relative_path in ("static/css/styles.css", "static/js/script.js"):
+        path = BASE_DIR / relative_path
+        if path.exists():
+            newest_mtime = max(newest_mtime, int(path.stat().st_mtime))
+    return str(newest_mtime or int(_now().timestamp()))
 
 
 def _next_student_number(db):

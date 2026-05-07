@@ -22,6 +22,9 @@ RUN pip install --upgrade pip --timeout 120 --retries 10 \
 
 COPY . .
 
+ARG APP_VERSION=""
+ENV APP_VERSION=${APP_VERSION}
+
 RUN mkdir -p /app/instance
 
 EXPOSE 5000

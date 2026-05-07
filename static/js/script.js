@@ -12,6 +12,7 @@ const appState = {
 const MIN_FACE_CAPTURES = 3;
 const MAX_FACE_CAPTURES = 12;
 const COURSE_OPTIONS = ["BSIT-NT 3201", "BSIT-NT 3202"];
+const ATTENDANCE_VISIBLE_STATUSES = new Set(["Present", "Already marked"]);
 const HAAR_FACE_BOX_SCALE_X = 2.2;
 const HAAR_FACE_BOX_SCALE_Y = 2.8;
 const HAAR_FACE_BOX_Y_OFFSET = -0.65;
@@ -631,7 +632,7 @@ async function runAttendanceCheck() {
       body: JSON.stringify({ image })
     });
 
-    if (result.matched) {
+    if (result.matched && ATTENDANCE_VISIBLE_STATUSES.has(result.status)) {
       const name = result.student.full_name;
       const faceLabel = `${result.student.student_id} - ${name}`;
       const attendanceKey = `${result.student.student_id}:${result.attendance?.date || ""}`;
@@ -653,22 +654,12 @@ async function runAttendanceCheck() {
         await loadDashboard();
       }
     } else {
-      statusText.textContent = result.message;
-      drawFaceBox(result.detection, "Unknown face");
-      addAttendanceLog({
-        title: "Unknown face",
-        detail: `Confidence ${result.confidence} / threshold ${result.threshold}`,
-        badge: result.status
-      });
+      statusText.textContent = "Scanning for faces...";
+      clearFaceBox();
     }
   } catch (error) {
-    statusText.textContent = error.message;
+    statusText.textContent = "Scanning for faces...";
     clearFaceBox();
-    addAttendanceLog({
-      title: "Detection error",
-      detail: error.message,
-      badge: "Error"
-    });
   } finally {
     appState.attendanceBusy = false;
   }
