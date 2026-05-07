@@ -8,7 +8,10 @@
     <h1 class="page-title">Dashboard</h1>
     <p class="page-subtitle">Live summary of registered users and attendance.</p>
   </div>
-  <span class="status-pill badge-neutral" id="systemStatus">Checking system</span>
+  <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+    <input class="form-input" id="dashboardDate" type="date" aria-label="Dashboard attendance date">
+    <span class="status-pill badge-neutral" id="systemStatus">Checking system</span>
+  </div>
 </header>
 
 <section class="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3" aria-label="Dashboard statistics">
@@ -18,9 +21,9 @@
     <p class="page-subtitle">Active registered students</p>
   </article>
   <article class="panel-card panel-pad">
-    <span class="text-sm font-semibold text-muted">Attendance Today</span>
+    <span class="text-sm font-semibold text-muted">Attendance for Date</span>
     <strong class="mt-2 block text-3xl font-bold tracking-tight text-strong" id="attendanceToday">0</strong>
-    <p class="page-subtitle">Students marked present today</p>
+    <p class="page-subtitle" id="attendanceDateLabel">Students marked present on selected date</p>
   </article>
   <article class="panel-card panel-pad sm:col-span-2 xl:col-span-1">
     <span class="text-sm font-semibold text-muted">Recognition Model</span>
@@ -31,8 +34,8 @@
 
 <section class="panel-card panel-pad">
   <div class="mb-4">
-    <h2 class="section-title">Recent Activity</h2>
-    <p class="section-subtitle">Latest attendance records</p>
+    <h2 class="section-title">Attendance by Date</h2>
+    <p class="section-subtitle" id="recentActivityLabel">Attendance records for selected date</p>
   </div>
   <div class="grid gap-3" id="recentActivity">
     <div class="empty-state">No attendance records yet.</div>

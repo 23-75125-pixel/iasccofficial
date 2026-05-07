@@ -36,7 +36,7 @@
   }
 
   .content-shell {
-    @apply mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8;
+    @apply mx-auto min-w-0 w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8;
   }
 
   .page-header {
@@ -64,7 +64,7 @@
   }
 
   .panel-card {
-    @apply rounded-2xl border border-slate-200 bg-white shadow-sm;
+    @apply min-w-0 rounded-2xl border border-slate-200 bg-white shadow-sm;
   }
 
   .panel-pad {
@@ -152,19 +152,19 @@
   }
 
   .activity-card {
-    @apply flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3;
+    @apply flex min-w-0 items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3;
   }
 
   .activity-title {
-    @apply block text-sm font-bold text-slate-950;
+    @apply block break-words text-sm font-bold text-slate-950;
   }
 
   .activity-detail {
-    @apply mt-0.5 block text-sm text-slate-500;
+    @apply mt-0.5 block break-words text-sm text-slate-500;
   }
 
   .table-shell {
-    @apply overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm;
+    @apply min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm;
   }
 
   .data-table {

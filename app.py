@@ -186,19 +186,20 @@ def create_app(config=None):
     @login_required
     def api_dashboard():
         today = _now().date().isoformat()
+        selected_date = _clean_date(request.args.get("date")) or today
         db = get_db()
         total_students = db.execute(
             "SELECT COUNT(*) AS count FROM students WHERE is_active = 1"
         ).fetchone()["count"]
-        attendance_today = db.execute(
+        attendance_count = db.execute(
             """
             SELECT COUNT(*) AS count
             FROM attendance_logs
             WHERE attendance_date = ? AND status = 'Present'
             """,
-            (today,),
+            (selected_date,),
         ).fetchone()["count"]
-        recent = _attendance_query(limit=5)
+        attendance_for_date = _attendance_query(date=selected_date, limit=8)
 
         system_status = face_engine.status()
         return jsonify(
@@ -206,11 +207,12 @@ def create_app(config=None):
                 "ok": True,
                 "stats": {
                     "total_students": total_students,
-                    "attendance_today": attendance_today,
+                    "attendance_today": attendance_count,
+                    "attendance_date": selected_date,
                     "system_status": "Ready" if system_status["available"] else "Needs setup",
                     "model_trained": system_status["model_trained"],
                 },
-                "recent_activity": recent,
+                "recent_activity": attendance_for_date,
             }
         )
 
@@ -321,6 +323,99 @@ def create_app(config=None):
             }
         ), 201
 
+    @app.patch("/api/students/<int:student_id>")
+    @login_required
+    def api_update_student(student_id):
+        payload = request.get_json(silent=True) or {}
+        full_name = _clean_text(payload.get("full_name"))
+        course = _clean_text(payload.get("course")).upper()
+
+        if len(full_name) < 2:
+            return _json_error("Full name is required.", 400)
+        if course not in ALLOWED_COURSES:
+            return _json_error("Choose BSIT-NT 3201 or BSIT-NT 3202.", 400)
+
+        db = get_db()
+        existing = db.execute(
+            "SELECT id FROM students WHERE id = ?",
+            (student_id,),
+        ).fetchone()
+        if existing is None:
+            return _json_error("Student was not found.", 404)
+
+        try:
+            db.execute(
+                """
+                UPDATE students
+                SET full_name = ?, course = ?, updated_at = ?
+                WHERE id = ?
+                """,
+                (full_name, course, _now().isoformat(timespec="seconds"), student_id),
+            )
+            db.commit()
+        except sqlite3.Error as exc:
+            db.rollback()
+            return _json_error(f"Student could not be updated: {exc}", 500)
+
+        return jsonify({"ok": True, "message": "Student updated."})
+
+    @app.delete("/api/students/<int:student_id>")
+    @login_required
+    def api_delete_student(student_id):
+        db = get_db()
+        student = db.execute(
+            "SELECT id, student_number FROM students WHERE id = ?",
+            (student_id,),
+        ).fetchone()
+        if student is None:
+            return _json_error("Student was not found.", 404)
+
+        sample_paths = [
+            row["image_path"]
+            for row in db.execute(
+                "SELECT image_path FROM face_samples WHERE student_id = ?",
+                (student_id,),
+            ).fetchall()
+        ]
+        snapshot_paths = [
+            row["snapshot_path"]
+            for row in db.execute(
+                """
+                SELECT snapshot_path
+                FROM attendance_logs
+                WHERE student_id = ? AND snapshot_path IS NOT NULL
+                """,
+                (student_id,),
+            ).fetchall()
+        ]
+
+        try:
+            db.execute("DELETE FROM students WHERE id = ?", (student_id,))
+            training_rows = db.execute(
+                """
+                SELECT fs.student_id, fs.image_path
+                FROM face_samples fs
+                JOIN students s ON s.id = fs.student_id
+                WHERE s.is_active = 1
+                """
+            ).fetchall()
+            training_status = face_engine.train(training_rows)
+            db.commit()
+        except (sqlite3.Error, FaceEngineError) as exc:
+            db.rollback()
+            return _json_error(f"Student could not be deleted: {exc}", 500)
+
+        for relative_path in sample_paths + snapshot_paths:
+            face_engine.delete_relative_file(relative_path)
+
+        return jsonify(
+            {
+                "ok": True,
+                "message": "Student deleted and recognition model updated.",
+                "training": training_status,
+            }
+        )
+
     @app.post("/api/attendance/recognize")
     @login_required
     def api_attendance_recognize():
@@ -373,22 +468,13 @@ def create_app(config=None):
         ).fetchone()
 
         if existing:
-            return jsonify(
-                {
-                    "ok": True,
-                    "matched": True,
-                    "detection": _detection_payload(result),
-                    "status": "Already marked",
-                    "student": _student_payload(student),
-                    "attendance": {
-                        "id": existing["id"],
-                        "date": attendance_date,
-                        "time": existing["attendance_time"],
-                        "recorded_at": existing["recorded_at"],
-                        "confidence": round(float(existing["confidence"]), 2),
-                    },
-                    "message": "Attendance was already recorded today.",
-                }
+            return _attendance_response(
+                result,
+                student,
+                existing,
+                attendance_date,
+                "Already marked",
+                "Attendance was already recorded today.",
             )
 
         snapshot_path = None
@@ -417,41 +503,56 @@ def create_app(config=None):
         except sqlite3.IntegrityError:
             db.rollback()
             face_engine.delete_relative_file(snapshot_path)
+            existing = db.execute(
+                """
+                SELECT id, attendance_time, recorded_at, confidence
+                FROM attendance_logs
+                WHERE student_id = ? AND attendance_date = ? AND status = 'Present'
+                """,
+                (student["id"], attendance_date),
+            ).fetchone()
+            if existing:
+                return _attendance_response(
+                    result,
+                    student,
+                    existing,
+                    attendance_date,
+                    "Already marked",
+                    "Attendance was already recorded today.",
+                )
             return _json_error("Attendance was recorded by another request. Try again.", 409)
         except (sqlite3.Error, FaceEngineError) as exc:
             db.rollback()
             face_engine.delete_relative_file(snapshot_path)
             return _json_error(f"Attendance could not be saved: {exc}", 500)
 
-        return jsonify(
+        return _attendance_response(
+            result,
+            student,
             {
-                "ok": True,
-                "matched": True,
-                "detection": _detection_payload(result),
-                "status": "Present",
-                "student": _student_payload(student),
-                "attendance": {
-                    "id": cursor.lastrowid,
-                    "date": attendance_date,
-                    "time": now.strftime("%I:%M:%S %p"),
-                    "recorded_at": now.isoformat(timespec="seconds"),
-                    "confidence": result["confidence"],
-                },
-                "message": "Attendance recorded.",
-            }
+                "id": cursor.lastrowid,
+                "attendance_time": now.strftime("%I:%M:%S %p"),
+                "recorded_at": now.isoformat(timespec="seconds"),
+                "confidence": result["confidence"],
+            },
+            attendance_date,
+            "Present",
+            "Attendance recorded.",
         )
 
     @app.get("/api/records")
     @login_required
     def api_records():
         search = _clean_text(request.args.get("search"))
-        return jsonify({"ok": True, "records": _attendance_query(search=search)})
+        date = _clean_date(request.args.get("date"))
+        return jsonify({"ok": True, "records": _attendance_query(search=search, date=date)})
 
     @app.get("/api/records/export.csv")
     @login_required
     def api_records_export():
         search = _clean_text(request.args.get("search"))
-        records = _attendance_query(search=search)
+        date = _clean_date(request.args.get("date"))
+        records = _attendance_query(search=search, date=date)
         output = io.StringIO()
         writer = csv.writer(output)
         writer.writerow(["Name", "Student ID", "Course", "Date", "Time", "Status", "Confidence"])
@@ -530,18 +631,25 @@ def create_app(config=None):
             f"threshold {status.get('threshold', app.config['FACE_MATCH_THRESHOLD'])}."
         )
 
-    def _attendance_query(search="", limit=None):
+    def _attendance_query(search="", date=None, limit=None):
         db = get_db()
         params = []
-        where = ""
+        filters = []
         if search:
-            where = """
-                WHERE LOWER(
+            filters.append(
+                """
+                LOWER(
                     s.full_name || ' ' || s.student_number || ' ' ||
                     s.course || ' ' || a.attendance_date || ' ' || a.status
                 ) LIKE ?
-            """
+                """
+            )
             params.append(f"%{search.lower()}%")
+        if date:
+            filters.append("a.attendance_date = ?")
+            params.append(date)
+
+        where = f"WHERE {' AND '.join(filters)}" if filters else ""
 
         limit_clause = ""
         if limit:
@@ -625,6 +733,17 @@ def _clean_text(value):
     return " ".join(str(value or "").strip().split())
 
 
+def _clean_date(value):
+    value = _clean_text(value)
+    if not value:
+        return ""
+    try:
+        datetime.strptime(value, "%Y-%m-%d")
+    except ValueError:
+        return ""
+    return value
+
+
 def _now():
     return datetime.now().astimezone()
 
@@ -650,6 +769,26 @@ def _student_payload(row):
         "full_name": row["full_name"],
         "course": row["course"],
     }
+
+
+def _attendance_response(result, student, attendance, attendance_date, status, message):
+    return jsonify(
+        {
+            "ok": True,
+            "matched": True,
+            "detection": _detection_payload(result),
+            "status": status,
+            "student": _student_payload(student),
+            "attendance": {
+                "id": attendance["id"],
+                "date": attendance_date,
+                "time": attendance["attendance_time"],
+                "recorded_at": attendance["recorded_at"],
+                "confidence": round(float(attendance["confidence"]), 2),
+            },
+            "message": message,
+        }
+    )
 
 
 def _detection_payload(result):

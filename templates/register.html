@@ -55,7 +55,7 @@
     <p class="section-subtitle">Students with saved face samples</p>
   </div>
   <div class="overflow-x-auto">
-    <table class="data-table min-w-[760px]">
+    <table class="data-table min-w-[980px]">
       <thead>
         <tr class="table-head-row">
           <th class="table-th">Name</th>
@@ -63,14 +63,16 @@
           <th class="table-th">Course</th>
           <th class="table-th">Samples</th>
           <th class="table-th">Status</th>
+          <th class="table-th">Actions</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-slate-100" id="studentsTable">
         <tr>
-          <td class="table-td-muted" colspan="5">Loading students...</td>
+          <td class="table-td-muted" colspan="6">Loading students...</td>
         </tr>
       </tbody>
     </table>
   </div>
+  <p class="mt-3 min-h-5 text-sm text-muted" id="studentsMessage"></p>
 </section>
 {% endblock %}

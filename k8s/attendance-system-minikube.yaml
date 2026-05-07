@@ -48,6 +48,8 @@ spec:
           ports:
             - containerPort: 5000
           env:
+            - name: TZ
+              value: Asia/Manila
             - name: DEFAULT_ADMIN_EMAIL
               valueFrom:
                 secretKeyRef:
@@ -67,6 +69,12 @@ spec:
                 secretKeyRef:
                   name: face-attendance-secret
                   key: SECRET_KEY
+            - name: GUNICORN_WORKERS
+              value: "1"
+            - name: GUNICORN_THREADS
+              value: "2"
+            - name: GUNICORN_TIMEOUT
+              value: "120"
           readinessProbe:
             httpGet:
               path: /readyz

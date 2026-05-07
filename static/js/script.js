@@ -4,11 +4,14 @@ const appState = {
   attendanceTimer: null,
   attendanceBusy: false,
   attendanceRunning: false,
+  attendanceMarked: {},
+  editingStudentId: null,
   captures: []
 };
 
 const MIN_FACE_CAPTURES = 3;
 const MAX_FACE_CAPTURES = 12;
+const COURSE_OPTIONS = ["BSIT-NT 3201", "BSIT-NT 3202"];
 const HAAR_FACE_BOX_SCALE_X = 2.2;
 const HAAR_FACE_BOX_SCALE_Y = 2.8;
 const HAAR_FACE_BOX_Y_OFFSET = -0.65;
@@ -27,6 +30,12 @@ const ui = {
 
 function $(selector) {
   return document.querySelector(selector);
+}
+
+function todayIsoDate() {
+  const now = new Date();
+  const localDate = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+  return localDate.toISOString().slice(0, 10);
 }
 
 function escapeHtml(value) {
@@ -243,14 +252,29 @@ function setupLogin() {
   });
 }
 
+function setupDashboard() {
+  const dateInput = $("#dashboardDate");
+  if (!dateInput) return;
+  dateInput.value = dateInput.value || todayIsoDate();
+  dateInput.addEventListener("change", () => loadDashboard());
+}
+
 async function loadDashboard() {
   if (!$("#totalStudents")) return;
+  const dateInput = $("#dashboardDate");
+  const selectedDate = dateInput?.value || todayIsoDate();
 
   try {
-    const payload = await apiFetch("/api/dashboard");
+    const params = new URLSearchParams();
+    params.set("date", selectedDate);
+    const payload = await apiFetch(`/api/dashboard?${params.toString()}`);
     $("#totalStudents").textContent = payload.stats.total_students;
     $("#attendanceToday").textContent = payload.stats.attendance_today;
     $("#modelStatus").textContent = payload.stats.model_trained ? "Trained" : "Not trained";
+    const dateLabel = $("#attendanceDateLabel");
+    if (dateLabel) dateLabel.textContent = `Students marked present on ${payload.stats.attendance_date}`;
+    const activityLabel = $("#recentActivityLabel");
+    if (activityLabel) activityLabel.textContent = `Attendance records for ${payload.stats.attendance_date}`;
 
     const status = $("#systemStatus");
     status.textContent = payload.stats.system_status;
@@ -268,7 +292,7 @@ function renderRecentActivity(records) {
   const activityList = $("#recentActivity");
   if (!activityList) return;
   if (!records?.length) {
-    activityList.innerHTML = `<div class="${ui.emptyState}">No attendance records yet.</div>`;
+    activityList.innerHTML = `<div class="${ui.emptyState}">No attendance records found for this date.</div>`;
     return;
   }
 
@@ -359,6 +383,8 @@ async function setupRegisterUser() {
     }
   });
 
+  $("#studentsTable")?.addEventListener("click", handleStudentAction);
+
   renderCaptures();
   await loadNextStudentId();
   await loadStudents();
@@ -413,22 +439,125 @@ async function loadStudents() {
   try {
     const payload = await apiFetch("/api/students");
     if (!payload.students.length) {
-      table.innerHTML = `<tr><td class="${ui.tableCellMuted}" colspan="5">No students registered yet.</td></tr>`;
+      table.innerHTML = `<tr><td class="${ui.tableCellMuted}" colspan="6">No students registered yet.</td></tr>`;
       return;
     }
     table.innerHTML = payload.students
-      .map((student) => `
-        <tr>
-          <td class="${ui.tableCell} font-semibold text-strong">${escapeHtml(student.full_name)}</td>
-          <td class="${ui.tableCell}">${escapeHtml(student.student_number)}</td>
-          <td class="${ui.tableCell}">${escapeHtml(student.course)}</td>
-          <td class="${ui.tableCell}">${student.sample_count}</td>
-          <td class="${ui.tableCell}"><span class="${badgeClass(student.is_active ? "Active" : "Inactive")}">${student.is_active ? "Active" : "Inactive"}</span></td>
-        </tr>
-      `)
+      .map((student) => renderStudentRow(student))
       .join("");
   } catch (error) {
-    table.innerHTML = `<tr><td class="${ui.tableCellMuted}" colspan="5">${escapeHtml(error.message)}</td></tr>`;
+    table.innerHTML = `<tr><td class="${ui.tableCellMuted}" colspan="6">${escapeHtml(error.message)}</td></tr>`;
+  }
+}
+
+function renderStudentRow(student) {
+  const isEditing = appState.editingStudentId === Number(student.id);
+  if (isEditing) {
+    return `
+      <tr>
+        <td class="${ui.tableCell}">
+          <input class="form-input w-full min-w-64" id="editName-${student.id}" type="text" maxlength="100" value="${escapeHtml(student.full_name)}">
+        </td>
+        <td class="${ui.tableCell}">${escapeHtml(student.student_number)}</td>
+        <td class="${ui.tableCell}">
+          <select class="form-input w-full min-w-64" id="editCourse-${student.id}">
+            ${COURSE_OPTIONS.map((course) => `<option value="${course}" ${course === student.course ? "selected" : ""}>${course}</option>`).join("")}
+          </select>
+        </td>
+        <td class="${ui.tableCell}">${student.sample_count}</td>
+        <td class="${ui.tableCell}"><span class="${badgeClass(student.is_active ? "Active" : "Inactive")}">${student.is_active ? "Active" : "Inactive"}</span></td>
+        <td class="${ui.tableCell}">
+          <div class="flex flex-col gap-2 sm:flex-row">
+            <button class="btn btn-primary" type="button" data-action="save" data-id="${student.id}">Save</button>
+            <button class="btn btn-secondary" type="button" data-action="cancel" data-id="${student.id}">Cancel</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }
+
+  return `
+    <tr>
+      <td class="${ui.tableCell} font-semibold text-strong">${escapeHtml(student.full_name)}</td>
+      <td class="${ui.tableCell}">${escapeHtml(student.student_number)}</td>
+      <td class="${ui.tableCell}">${escapeHtml(student.course)}</td>
+      <td class="${ui.tableCell}">${student.sample_count}</td>
+      <td class="${ui.tableCell}"><span class="${badgeClass(student.is_active ? "Active" : "Inactive")}">${student.is_active ? "Active" : "Inactive"}</span></td>
+      <td class="${ui.tableCell}">
+        <div class="flex flex-col gap-2 sm:flex-row">
+          <button class="btn btn-secondary" type="button" data-action="edit" data-id="${student.id}">Edit</button>
+          <button class="btn btn-secondary" type="button" data-action="delete" data-id="${student.id}" data-name="${escapeHtml(student.full_name)}">Delete</button>
+        </div>
+      </td>
+    </tr>
+  `;
+}
+
+async function handleStudentAction(event) {
+  const button = event.target.closest("[data-action]");
+  if (!button) return;
+
+  const action = button.dataset.action;
+  const studentId = Number(button.dataset.id);
+  const message = $("#studentsMessage");
+
+  if (action === "edit") {
+    appState.editingStudentId = studentId;
+    await loadStudents();
+    return;
+  }
+
+  if (action === "cancel") {
+    appState.editingStudentId = null;
+    await loadStudents();
+    setMessage(message, "");
+    return;
+  }
+
+  if (action === "save") {
+    const nameInput = $(`#editName-${studentId}`);
+    const courseInput = $(`#editCourse-${studentId}`);
+    button.disabled = true;
+    setMessage(message, "Updating student...");
+    try {
+      const result = await apiFetch(`/api/students/${studentId}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          full_name: nameInput?.value.trim(),
+          course: courseInput?.value
+        })
+      });
+      appState.editingStudentId = null;
+      setMessage(message, result.message, "success");
+      await loadStudents();
+      await loadDashboard();
+    } catch (error) {
+      setMessage(message, error.message, "error");
+      button.disabled = false;
+    }
+    return;
+  }
+
+  if (action === "delete") {
+    const studentName = button.dataset.name || "this student";
+    if (!window.confirm(`Delete ${studentName}? This also removes the student's face samples and attendance records.`)) {
+      return;
+    }
+    button.disabled = true;
+    setMessage(message, "Deleting student and updating recognition model...");
+    try {
+      const result = await apiFetch(`/api/students/${studentId}`, {
+        method: "DELETE"
+      });
+      appState.editingStudentId = null;
+      setMessage(message, result.message, "success");
+      await loadStudents();
+      await loadNextStudentId();
+      await loadDashboard();
+    } catch (error) {
+      setMessage(message, error.message, "error");
+      button.disabled = false;
+    }
   }
 }
 
@@ -452,6 +581,7 @@ function setupAttendance() {
     try {
       appState.attendanceStream = await startCamera(video, fallback);
       appState.attendanceRunning = true;
+      appState.attendanceMarked = {};
       startButton.textContent = "Stop Attendance";
       startButton.disabled = false;
       statusText.textContent = "Scanning for faces...";
@@ -498,14 +628,21 @@ async function runAttendanceCheck() {
     if (result.matched) {
       const name = result.student.full_name;
       const faceLabel = `${result.student.student_id} - ${name}`;
+      const attendanceKey = `${result.student.student_id}:${result.attendance?.date || ""}`;
+      const alreadyShown = result.status === "Already marked" && appState.attendanceMarked[attendanceKey];
       statusText.textContent = `${result.status}: ${name}`;
       drawFaceBox(result.detection, faceLabel);
-      addAttendanceLog({
-        title: name,
-        detail: `${result.student.student_id} - ${result.message}`,
-        badge: result.status,
-        confidence: result.attendance?.confidence
-      });
+      if (!alreadyShown) {
+        addAttendanceLog({
+          title: name,
+          detail: `${result.student.student_id} - ${result.message}`,
+          badge: result.status,
+          confidence: result.attendance?.confidence
+        });
+      }
+      if (result.status === "Present" || result.status === "Already marked") {
+        appState.attendanceMarked[attendanceKey] = true;
+      }
       if (result.status === "Present") {
         await loadDashboard();
       }
@@ -553,13 +690,14 @@ function addAttendanceLog(entry) {
   }
 }
 
-async function loadRecords(search = "") {
+async function loadRecords(search = "", date = "") {
   const tableBody = $("#recordsTable");
   if (!tableBody) return;
 
   try {
     const params = new URLSearchParams();
     if (search) params.set("search", search);
+    if (date) params.set("date", date);
     const payload = await apiFetch(`/api/records?${params.toString()}`);
     renderRecords(payload.records);
   } catch (error) {
@@ -592,25 +730,40 @@ function renderRecords(records) {
 
 function setupRecordsTools() {
   const searchInput = $("#recordSearch");
+  const dateInput = $("#recordDate");
   const exportButton = $("#exportCsv");
   const exportMessage = $("#exportMessage");
-  if (!searchInput && !exportButton) return;
+  if (!searchInput && !dateInput && !exportButton) return;
+
+  const loadFilteredRecords = () => {
+    loadRecords(searchInput?.value.trim() || "", dateInput?.value || "");
+  };
 
   let searchTimer = null;
   searchInput?.addEventListener("input", () => {
     window.clearTimeout(searchTimer);
-    searchTimer = window.setTimeout(() => loadRecords(searchInput.value.trim()), 250);
+    searchTimer = window.setTimeout(loadFilteredRecords, 250);
+  });
+
+  dateInput?.addEventListener("change", loadFilteredRecords);
+
+  dateInput?.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      dateInput.value = "";
+      loadFilteredRecords();
+    }
   });
 
   exportButton?.addEventListener("click", () => {
     const params = new URLSearchParams();
     if (searchInput?.value.trim()) params.set("search", searchInput.value.trim());
+    if (dateInput?.value) params.set("date", dateInput.value);
     setMessage(exportMessage, "Preparing CSV export...");
     window.location.href = `/api/records/export.csv?${params.toString()}`;
     window.setTimeout(() => setMessage(exportMessage, ""), 2000);
   });
 
-  loadRecords();
+  loadFilteredRecords();
 }
 
 window.addEventListener("beforeunload", () => {
@@ -620,6 +773,7 @@ window.addEventListener("beforeunload", () => {
 
 document.addEventListener("DOMContentLoaded", () => {
   setupLogin();
+  setupDashboard();
   loadDashboard();
   setupRegisterUser();
   setupAttendance();

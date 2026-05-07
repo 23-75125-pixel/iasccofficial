@@ -421,8 +421,11 @@ class FaceEngine:
             path.relative_to(self.instance_path.resolve())
         except ValueError:
             return
-        if path.exists():
-            path.unlink()
+        try:
+            if path.exists():
+                path.unlink()
+        except OSError:
+            return
 
     def _relative(self, path):
         return path.relative_to(self.instance_path).as_posix()

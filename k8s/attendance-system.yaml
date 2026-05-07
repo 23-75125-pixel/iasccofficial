@@ -37,6 +37,8 @@ spec:
           ports:
             - containerPort: 5000
           env:
+            - name: TZ
+              value: Asia/Manila
             - name: DEFAULT_ADMIN_EMAIL
               valueFrom:
                 secretKeyRef:

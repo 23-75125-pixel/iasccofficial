@@ -424,7 +424,10 @@ kubectl rollout status deployment/face-attendance-web -n face-attendance</pre>
 
     <h3>Expose with Port Forward and Ngrok</h3>
     <pre>kubectl port-forward -n face-attendance svc/face-attendance-service 5000:80
-ngrok http 5000</pre>
+ngrok http 5000
+
+# Preferred for 5 replicas:
+ngrok http "$(minikube ip):30080"</pre>
   </section>
 
   <section class="page-break">
