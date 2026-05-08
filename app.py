@@ -249,7 +249,7 @@ def create_app(config=None):
         if len(full_name) < 2:
             return _json_error("Full name is required.", 400)
         if course not in ALLOWED_COURSES:
-            return _json_error("Choose BSIT-NT 3201 or BSIT-NT 3202.", 400)
+            return _json_error("Choose course/section BSIT-NT 3201 or BSIT-NT 3202.", 400)
         if not isinstance(face_images, list) or len(face_images) < 3:
             return _json_error("Capture at least 3 face samples before saving.", 400)
         if len(face_images) > 12:
@@ -335,7 +335,7 @@ def create_app(config=None):
         if len(full_name) < 2:
             return _json_error("Full name is required.", 400)
         if course not in ALLOWED_COURSES:
-            return _json_error("Choose BSIT-NT 3201 or BSIT-NT 3202.", 400)
+            return _json_error("Choose course/section BSIT-NT 3201 or BSIT-NT 3202.", 400)
 
         db = get_db()
         existing = db.execute(

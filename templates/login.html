@@ -1,35 +1,61 @@
 {% extends "base.html" %}
 
 {% block title %}Login | Face Recognition Attendance System{% endblock %}
-{% block body_class %}grid place-items-center px-4 py-8{% endblock %}
+{% block body_class %}auth-page{% endblock %}
 
 {% block content %}
-<main class="w-full max-w-md">
-  <section class="auth-card">
-    <div class="mb-8 flex items-center gap-3">
-      <img class="h-11 w-11 rounded-lg shadow-sm" src="{{ url_for('static', filename='assets/face-logo.svg') }}" alt="Face Attendance logo">
-      <div>
-        <h1 class="text-xl font-bold text-strong">Face Attendance</h1>
-        <p class="mt-0.5 text-sm text-muted">Admin portal</p>
+<main class="login-shell">
+  <section class="login-stage" aria-label="Face Attendance login">
+    <div class="login-art" aria-hidden="true">
+      <div class="portrait-panel">
+        <div class="corner corner-top-left"></div>
+        <div class="corner corner-bottom-right"></div>
+        <div class="portrait-head"></div>
+        <div class="portrait-hair"></div>
+        <div class="portrait-neck"></div>
+        <div class="portrait-body"></div>
+        <div class="scan-line"></div>
+      </div>
+      <div class="phone-preview">
+        <div class="phone-speaker"></div>
+        <div class="phone-screen">
+          <div class="phone-face"></div>
+          <div class="phone-shirt"></div>
+          <span class="scan-badge">SCAN</span>
+        </div>
+        <div class="phone-button"></div>
       </div>
     </div>
 
-    <form class="grid gap-4" id="loginForm" method="post" action="{{ url_for('login') }}">
-      <div class="grid gap-1.5">
-        <label class="form-label" for="email">Email</label>
-        <input class="form-input" id="email" name="email" type="email" autocomplete="username" required>
+    <section class="login-card">
+      <div class="mb-6 flex items-center gap-3">
+        <img class="h-11 w-11 rounded-lg shadow-sm" src="{{ url_for('static', filename='assets/face-logo.svg') }}" alt="Face Attendance logo">
+        <div>
+          <h1 class="text-xl font-bold text-strong">Login to Account</h1>
+          <p class="mt-0.5 text-sm text-muted">Admin portal</p>
+        </div>
       </div>
 
-      <div class="grid gap-1.5">
-        <label class="form-label" for="password">Password</label>
-        <input class="form-input" id="password" name="password" type="password" autocomplete="current-password" required>
-      </div>
+      <form class="grid gap-4" id="loginForm" method="post" action="{{ url_for('login') }}">
+        <div class="grid gap-1.5">
+          <label class="form-label" for="email">Email</label>
+          <input class="form-input" id="email" name="email" type="email" autocomplete="username" required>
+        </div>
 
-      <button class="btn btn-primary" type="submit">Login</button>
-      <p class="min-h-5 text-sm {{ 'message-error' if error else 'text-muted' }}" id="loginMessage">
-        {{ error or ("Default admin: " ~ default_admin_email ~ " / " ~ default_admin_password) }}
-      </p>
-    </form>
+        <div class="grid gap-1.5">
+          <label class="form-label" for="password">Password</label>
+          <div class="password-field">
+            <input class="form-input password-input" id="password" name="password" type="password" autocomplete="current-password" required>
+            <button class="password-toggle" type="button" id="togglePassword" aria-controls="password" aria-pressed="false">Show</button>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" type="submit">Login</button>
+        <p class="min-h-5 text-sm {{ 'message-error' if error else 'text-muted' }}" id="loginMessage">
+          {{ error or ("Default admin: " ~ default_admin_email ~ " / " ~ default_admin_password) }}
+        </p>
+      </form>
+    </section>
   </section>
 </main>
 {% endblock %}

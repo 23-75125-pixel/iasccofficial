@@ -34,6 +34,85 @@ function $(selector) {
   return document.querySelector(selector);
 }
 
+function swalAvailable() {
+  return Boolean(window.Swal?.fire);
+}
+
+function alertDefaults(options = {}) {
+  const { customClass = {}, ...rest } = options;
+  return {
+    confirmButtonText: "OK",
+    buttonsStyling: false,
+    heightAuto: false,
+    ...rest,
+    customClass: {
+      popup: "app-alert",
+      confirmButton: "btn btn-primary alert-button",
+      cancelButton: "btn btn-secondary alert-button",
+      denyButton: "btn btn-danger alert-button",
+      ...customClass
+    }
+  };
+}
+
+async function appAlert(options) {
+  if (swalAvailable()) {
+    return window.Swal.fire(alertDefaults(options));
+  }
+  window.alert([options.title, options.text].filter(Boolean).join("\n"));
+  return { isConfirmed: true };
+}
+
+async function appConfirm(options) {
+  if (swalAvailable()) {
+    const result = await window.Swal.fire(alertDefaults({
+      icon: "question",
+      showCancelButton: true,
+      reverseButtons: true,
+      confirmButtonText: "Confirm",
+      cancelButtonText: "Cancel",
+      ...options
+    }));
+    return result.isConfirmed;
+  }
+  return window.confirm([options.title, options.text].filter(Boolean).join("\n"));
+}
+
+function appToast(options) {
+  if (swalAvailable()) {
+    window.Swal.fire(alertDefaults({
+      toast: true,
+      position: "top-end",
+      showConfirmButton: false,
+      timer: 2200,
+      timerProgressBar: true,
+      ...options
+    }));
+    return;
+  }
+  if (options.icon === "error") {
+    window.alert([options.title, options.text].filter(Boolean).join("\n"));
+  }
+}
+
+function appLoading(title, text = "") {
+  if (!swalAvailable()) return;
+  window.Swal.fire(alertDefaults({
+    title,
+    text,
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    showConfirmButton: false,
+    didOpen: () => window.Swal.showLoading()
+  }));
+}
+
+function closeAppAlert() {
+  if (swalAvailable()) {
+    window.Swal.close();
+  }
+}
+
 function todayIsoDate() {
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone: APP_TIME_ZONE,
@@ -69,6 +148,11 @@ async function apiFetch(url, options = {}) {
   const payload = contentType.includes("application/json") ? await response.json() : null;
 
   if (response.status === 401) {
+    await appAlert({
+      icon: "warning",
+      title: "Session expired",
+      text: "Please log in again."
+    });
     window.location.href = "/login";
     throw new Error("Authentication required.");
   }
@@ -236,11 +320,31 @@ function setupLogin() {
   const message = $("#loginMessage");
   if (!form) return;
 
+  const passwordInput = $("#password");
+  const togglePassword = $("#togglePassword");
+  togglePassword?.addEventListener("click", () => {
+    if (!passwordInput) return;
+    const showPassword = passwordInput.type === "password";
+    passwordInput.type = showPassword ? "text" : "password";
+    togglePassword.textContent = showPassword ? "Hide" : "Show";
+    togglePassword.setAttribute("aria-pressed", String(showPassword));
+  });
+
+  if (window.sessionStorage.getItem("logoutSuccess") === "1") {
+    window.sessionStorage.removeItem("logoutSuccess");
+    appAlert({
+      icon: "success",
+      title: "Logged out",
+      text: "You have been signed out."
+    });
+  }
+
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     const button = form.querySelector("button[type='submit']");
     button.disabled = true;
     setMessage(message, "Signing in...");
+    appLoading("Signing in", "Checking your admin account...");
 
     try {
       const payload = {
@@ -251,11 +355,52 @@ function setupLogin() {
         method: "POST",
         body: JSON.stringify(payload)
       });
+      closeAppAlert();
+      await appAlert({
+        icon: "success",
+        title: "Login successful",
+        text: "Welcome back.",
+        timer: 1300,
+        showConfirmButton: false
+      });
       window.location.href = result.redirect || "/dashboard";
     } catch (error) {
+      closeAppAlert();
       setMessage(message, error.message, "error");
+      await appAlert({
+        icon: "error",
+        title: "Login failed",
+        text: error.message
+      });
       button.disabled = false;
     }
+  });
+}
+
+function setupInitialSetup() {
+  const form = $("#setupForm");
+  const message = $("#setupMessage");
+  if (!form) return;
+
+  if (message?.classList.contains("message-error")) {
+    appAlert({
+      icon: "error",
+      title: "Setup failed",
+      text: message.textContent.trim()
+    });
+  }
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const confirmed = await appConfirm({
+      title: "Create admin account?",
+      text: "This account will be used to manage the attendance system.",
+      confirmButtonText: "Create Admin"
+    });
+    if (!confirmed) return;
+
+    appLoading("Creating admin", "Saving the first admin account...");
+    form.submit();
   });
 }
 
@@ -306,6 +451,28 @@ function setupSidebar() {
   } else {
     desktopQuery.addListener(closeOnDesktop);
   }
+}
+
+function setupLogout() {
+  document.querySelectorAll(".nav-link-logout").forEach((link) => {
+    link.addEventListener("click", async (event) => {
+      event.preventDefault();
+      const confirmed = await appConfirm({
+        icon: "warning",
+        title: "Logout?",
+        text: "You will be signed out of the admin portal.",
+        confirmButtonText: "Logout",
+        customClass: {
+          confirmButton: "btn btn-danger alert-button"
+        }
+      });
+      if (!confirmed) return;
+
+      window.sessionStorage.setItem("logoutSuccess", "1");
+      appLoading("Logging out", "Ending your session...");
+      window.location.href = link.href;
+    });
+  });
 }
 
 function setupDashboard() {
@@ -380,6 +547,11 @@ async function setupRegisterUser() {
     setMessage(message, "Capture at least 3 face samples.");
   } catch (error) {
     setMessage(message, error.message, "error");
+    await appAlert({
+      icon: "error",
+      title: "Camera unavailable",
+      text: error.message
+    });
   }
 
   captureButton?.addEventListener("click", async () => {
@@ -389,32 +561,79 @@ async function setupRegisterUser() {
       }
       if (appState.captures.length >= MAX_FACE_CAPTURES) {
         setMessage(message, `Maximum of ${MAX_FACE_CAPTURES} captures reached.`, "warning");
+        appToast({
+          icon: "warning",
+          title: "Capture limit reached",
+          text: `Maximum of ${MAX_FACE_CAPTURES} captures reached.`
+        });
         return;
       }
       appState.captures.push(captureFrame(video, canvas));
       renderCaptures();
       setMessage(message, `${appState.captures.length} face sample${appState.captures.length === 1 ? "" : "s"} captured.`);
+      appToast({
+        icon: "success",
+        title: "Capture added",
+        text: `${appState.captures.length} of ${MIN_FACE_CAPTURES} required captures ready.`
+      });
     } catch (error) {
       setMessage(message, error.message, "error");
+      await appAlert({
+        icon: "error",
+        title: "Capture failed",
+        text: error.message
+      });
     }
   });
 
-  clearButton?.addEventListener("click", () => {
+  clearButton?.addEventListener("click", async () => {
+    if (!appState.captures.length) {
+      appToast({
+        icon: "info",
+        title: "No captures to clear"
+      });
+      return;
+    }
+    const confirmed = await appConfirm({
+      icon: "warning",
+      title: "Clear captures?",
+      text: "All current face samples will be removed from this form.",
+      confirmButtonText: "Clear"
+    });
+    if (!confirmed) return;
+
     appState.captures = [];
     renderCaptures();
     setMessage(message, "Captures cleared.");
+    appToast({
+      icon: "success",
+      title: "Captures cleared"
+    });
   });
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     if (appState.captures.length < MIN_FACE_CAPTURES) {
       setMessage(message, `Capture at least ${MIN_FACE_CAPTURES} face samples before saving.`, "error");
+      await appAlert({
+        icon: "error",
+        title: "More captures needed",
+        text: `Capture at least ${MIN_FACE_CAPTURES} face samples before saving.`
+      });
       return;
     }
+
+    const confirmed = await appConfirm({
+      title: "Save this user?",
+      text: "The student profile and face samples will be saved.",
+      confirmButtonText: "Save User"
+    });
+    if (!confirmed) return;
 
     const submitButton = form.querySelector("button[type='submit']");
     submitButton.disabled = true;
     setMessage(message, "Saving student and training recognition model...");
+    appLoading("Saving user", "Training the recognition model...");
 
     try {
       const payload = {
@@ -432,8 +651,20 @@ async function setupRegisterUser() {
       setMessage(message, result.message, "success");
       await loadStudents();
       await loadNextStudentId();
+      closeAppAlert();
+      await appAlert({
+        icon: "success",
+        title: "User saved",
+        text: result.message
+      });
     } catch (error) {
+      closeAppAlert();
       setMessage(message, error.message, "error");
+      await appAlert({
+        icon: "error",
+        title: "Save failed",
+        text: error.message
+      });
     } finally {
       submitButton.disabled = false;
     }
@@ -481,9 +712,21 @@ function renderCaptures() {
     .join("");
 
   captureList.querySelectorAll("[data-index]").forEach((button) => {
-    button.addEventListener("click", () => {
+    button.addEventListener("click", async () => {
+      const confirmed = await appConfirm({
+        icon: "warning",
+        title: "Remove capture?",
+        text: `Capture ${Number(button.dataset.index) + 1} will be removed from this form.`,
+        confirmButtonText: "Remove"
+      });
+      if (!confirmed) return;
+
       appState.captures.splice(Number(button.dataset.index), 1);
       renderCaptures();
+      appToast({
+        icon: "success",
+        title: "Capture removed"
+      });
     });
   });
 }
@@ -560,6 +803,10 @@ async function handleStudentAction(event) {
   if (action === "edit") {
     appState.editingStudentId = studentId;
     await loadStudents();
+    appToast({
+      icon: "info",
+      title: "Edit mode enabled"
+    });
     return;
   }
 
@@ -567,14 +814,26 @@ async function handleStudentAction(event) {
     appState.editingStudentId = null;
     await loadStudents();
     setMessage(message, "");
+    appToast({
+      icon: "info",
+      title: "Edit canceled"
+    });
     return;
   }
 
   if (action === "save") {
     const nameInput = $(`#editName-${studentId}`);
     const courseInput = $(`#editCourse-${studentId}`);
+    const confirmed = await appConfirm({
+      title: "Save student changes?",
+      text: "The student's name and course/section will be updated.",
+      confirmButtonText: "Save"
+    });
+    if (!confirmed) return;
+
     button.disabled = true;
     setMessage(message, "Updating student...");
+    appLoading("Updating student", "Saving the latest student details...");
     try {
       const result = await apiFetch(`/api/students/${studentId}`, {
         method: "PATCH",
@@ -587,8 +846,20 @@ async function handleStudentAction(event) {
       setMessage(message, result.message, "success");
       await loadStudents();
       await loadDashboard();
+      closeAppAlert();
+      await appAlert({
+        icon: "success",
+        title: "Student updated",
+        text: result.message
+      });
     } catch (error) {
+      closeAppAlert();
       setMessage(message, error.message, "error");
+      await appAlert({
+        icon: "error",
+        title: "Update failed",
+        text: error.message
+      });
       button.disabled = false;
     }
     return;
@@ -596,11 +867,21 @@ async function handleStudentAction(event) {
 
   if (action === "delete") {
     const studentName = button.dataset.name || "this student";
-    if (!window.confirm(`Delete ${studentName}? This also removes the student's face samples and attendance records.`)) {
+    const confirmed = await appConfirm({
+      icon: "warning",
+      title: `Delete ${studentName}?`,
+      text: "This also removes the student's face samples and attendance records.",
+      confirmButtonText: "Delete",
+      customClass: {
+        confirmButton: "btn btn-danger alert-button"
+      }
+    });
+    if (!confirmed) {
       return;
     }
     button.disabled = true;
     setMessage(message, "Deleting student and updating recognition model...");
+    appLoading("Deleting student", "Removing records and updating the recognition model...");
     try {
       const result = await apiFetch(`/api/students/${studentId}`, {
         method: "DELETE"
@@ -610,8 +891,20 @@ async function handleStudentAction(event) {
       await loadStudents();
       await loadNextStudentId();
       await loadDashboard();
+      closeAppAlert();
+      await appAlert({
+        icon: "success",
+        title: "Student deleted",
+        text: result.message
+      });
     } catch (error) {
+      closeAppAlert();
       setMessage(message, error.message, "error");
+      await appAlert({
+        icon: "error",
+        title: "Delete failed",
+        text: error.message
+      });
       button.disabled = false;
     }
   }
@@ -628,12 +921,24 @@ function setupAttendance() {
 
   startButton.addEventListener("click", async () => {
     if (appState.attendanceRunning) {
+      const confirmed = await appConfirm({
+        icon: "warning",
+        title: "Stop attendance scanning?",
+        text: "The camera will stop checking faces.",
+        confirmButtonText: "Stop"
+      });
+      if (!confirmed) return;
       stopAttendance();
+      appToast({
+        icon: "info",
+        title: "Attendance stopped"
+      });
       return;
     }
 
     startButton.disabled = true;
     statusText.textContent = "Starting camera...";
+    appLoading("Starting camera", "Preparing live attendance scanning...");
     try {
       appState.attendanceStream = await startCamera(video, fallback);
       appState.attendanceRunning = true;
@@ -641,10 +946,21 @@ function setupAttendance() {
       startButton.textContent = "Stop Attendance";
       startButton.disabled = false;
       statusText.textContent = "Scanning for faces...";
+      closeAppAlert();
+      appToast({
+        icon: "success",
+        title: "Attendance started"
+      });
       await runAttendanceCheck();
       appState.attendanceTimer = window.setInterval(runAttendanceCheck, 3000);
     } catch (error) {
+      closeAppAlert();
       statusText.textContent = error.message;
+      await appAlert({
+        icon: "error",
+        title: "Camera start failed",
+        text: error.message
+      });
       startButton.disabled = false;
     }
   });
@@ -694,6 +1010,11 @@ async function runAttendanceCheck() {
           detail: `${result.student.student_id} - ${result.message}`,
           badge: result.status,
           confidence: result.attendance?.confidence
+        });
+        appToast({
+          icon: result.status === "Present" ? "success" : "info",
+          title: result.status,
+          text: `${name} - ${result.message}`
         });
       }
       if (result.status === "Present" || result.status === "Already marked") {
@@ -800,11 +1121,22 @@ function setupRecordsTools() {
     }
   });
 
-  exportButton?.addEventListener("click", () => {
+  exportButton?.addEventListener("click", async () => {
+    const confirmed = await appConfirm({
+      title: "Export attendance records?",
+      text: "A CSV file will be prepared using the current filters.",
+      confirmButtonText: "Export CSV"
+    });
+    if (!confirmed) return;
+
     const params = new URLSearchParams();
     if (searchInput?.value.trim()) params.set("search", searchInput.value.trim());
     if (dateInput?.value) params.set("date", dateInput.value);
     setMessage(exportMessage, "Preparing CSV export...");
+    appToast({
+      icon: "success",
+      title: "Preparing CSV export"
+    });
     window.location.href = `/api/records/export.csv?${params.toString()}`;
     window.setTimeout(() => setMessage(exportMessage, ""), 2000);
   });
@@ -819,7 +1151,9 @@ window.addEventListener("beforeunload", () => {
 
 document.addEventListener("DOMContentLoaded", () => {
   setupSidebar();
+  setupLogout();
   setupLogin();
+  setupInitialSetup();
   setupDashboard();
   loadDashboard();
   setupRegisterUser();

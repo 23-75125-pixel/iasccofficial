@@ -14,7 +14,7 @@
       </div>
     </div>
 
-    <form class="grid gap-4" method="post" action="{{ url_for('setup') }}">
+    <form class="grid gap-4" id="setupForm" method="post" action="{{ url_for('setup') }}">
       <div class="grid gap-1.5">
         <label class="form-label" for="email">Admin Email</label>
         <input class="form-input" id="email" name="email" type="email" autocomplete="username" required>
@@ -31,7 +31,7 @@
       </div>
 
       <button class="btn btn-primary" type="submit">Create Admin</button>
-      <p class="min-h-5 text-sm {{ 'message-error' if error else 'text-muted' }}">{{ error or "Setup is only shown when no admin account exists." }}</p>
+      <p class="min-h-5 text-sm {{ 'message-error' if error else 'text-muted' }}" id="setupMessage">{{ error or "Setup is only shown when no admin account exists." }}</p>
     </form>
   </section>
 </main>

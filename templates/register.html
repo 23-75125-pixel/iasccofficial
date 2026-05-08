@@ -21,9 +21,9 @@
     </div>
 
     <div class="grid gap-1.5">
-      <label class="form-label" for="course">Course</label>
+      <label class="form-label" for="course">Course/Section</label>
       <select class="form-input" id="course" name="course" required>
-        <option value="" selected disabled>Choose course</option>
+        <option value="" selected disabled>Choose course/section</option>
         {% for course in allowed_courses %}
           <option value="{{ course }}">{{ course }}</option>
         {% endfor %}
@@ -60,7 +60,7 @@
         <tr class="table-head-row">
           <th class="table-th">Name</th>
           <th class="table-th">Student ID</th>
-          <th class="table-th">Course</th>
+          <th class="table-th">Course/Section</th>
           <th class="table-th">Samples</th>
           <th class="table-th">Status</th>
           <th class="table-th">Actions</th>

@@ -129,6 +129,107 @@
     @apply rounded-lg border border-slate-200 bg-white p-6 shadow-sm sm:p-8;
   }
 
+  .auth-page {
+    @apply min-h-screen overflow-x-hidden bg-slate-50 px-4 py-6 text-slate-900 sm:px-6 lg:px-8;
+  }
+
+  .login-shell {
+    @apply mx-auto grid min-h-[calc(100vh-3rem)] w-full max-w-5xl place-items-center;
+  }
+
+  .login-stage {
+    @apply relative grid w-full items-center gap-6 lg:grid-cols-[minmax(0,1fr)_360px];
+  }
+
+  .login-art {
+    @apply relative min-h-[260px] overflow-hidden rounded-lg bg-sky-50 lg:min-h-[430px];
+  }
+
+  .portrait-panel {
+    @apply absolute left-3 top-8 h-56 w-[72%] max-w-[440px] rounded-lg bg-white/70 shadow-sm sm:left-8 sm:top-12 sm:h-72 lg:left-10 lg:top-16 lg:h-80;
+  }
+
+  .portrait-panel,
+  .phone-preview {
+    @apply border border-slate-200;
+  }
+
+  .corner {
+    @apply absolute h-10 w-10 border-slate-500;
+  }
+
+  .corner-top-left {
+    @apply left-6 top-6 border-l-2 border-t-2;
+  }
+
+  .corner-bottom-right {
+    @apply bottom-6 right-6 border-b-2 border-r-2;
+  }
+
+  .portrait-head {
+    @apply absolute left-[33%] top-14 h-28 w-24 rounded-full bg-rose-100 sm:top-16 sm:h-36 sm:w-28;
+  }
+
+  .portrait-hair {
+    @apply absolute left-[35%] top-10 h-16 w-28 rounded-t-full bg-rose-300 sm:top-12 sm:h-20;
+  }
+
+  .portrait-neck {
+    @apply absolute left-[43%] top-36 h-12 w-10 bg-rose-100 sm:top-48;
+  }
+
+  .portrait-body {
+    @apply absolute bottom-0 left-[24%] h-24 w-52 rounded-t-full bg-sky-200 sm:h-32 sm:w-60;
+  }
+
+  .scan-line {
+    @apply absolute bottom-9 left-8 right-8 h-0.5 bg-brand-600;
+  }
+
+  .phone-preview {
+    @apply absolute bottom-5 right-4 h-56 w-32 rounded-lg bg-slate-700 p-2 shadow-lg sm:right-10 sm:h-72 sm:w-40 lg:bottom-12 lg:right-12;
+  }
+
+  .phone-speaker {
+    @apply mx-auto mb-2 h-1.5 w-11 rounded-full bg-white;
+  }
+
+  .phone-screen {
+    @apply relative h-[calc(100%-2.75rem)] overflow-hidden rounded-lg bg-slate-100;
+  }
+
+  .phone-face {
+    @apply absolute left-1/2 top-6 h-16 w-14 -translate-x-1/2 rounded-full bg-orange-100 sm:h-20 sm:w-16;
+  }
+
+  .phone-shirt {
+    @apply absolute bottom-6 left-1/2 h-16 w-24 -translate-x-1/2 rounded-t-full bg-orange-400 sm:w-28;
+  }
+
+  .scan-badge {
+    @apply absolute bottom-8 left-1/2 -translate-x-1/2 rounded bg-brand-600 px-2 py-0.5 text-[10px] font-bold text-white;
+  }
+
+  .phone-button {
+    @apply mx-auto mt-2 h-4 w-4 rounded-full bg-white;
+  }
+
+  .login-card {
+    @apply relative z-10 w-full rounded-lg border border-slate-200 bg-white p-6 shadow-lg sm:p-8 lg:-ml-24;
+  }
+
+  .password-field {
+    @apply relative;
+  }
+
+  .password-input {
+    @apply w-full pr-20;
+  }
+
+  .password-toggle {
+    @apply absolute right-2 top-1/2 min-h-8 -translate-y-1/2 rounded-md px-3 text-xs font-bold text-slate-600 transition-colors hover:bg-brand-50 hover:text-brand-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-50;
+  }
+
   .form-label {
     @apply text-sm font-semibold text-slate-700;
   }
@@ -279,5 +380,13 @@
 
   .capture-number {
     @apply absolute bottom-1.5 right-1.5 grid h-5 min-w-5 place-items-center rounded-full bg-slate-950/80 px-1 text-xs font-bold text-white;
+  }
+
+  .app-alert {
+    @apply rounded-lg;
+  }
+
+  .alert-button {
+    @apply mx-1 min-w-28;
   }
 }
