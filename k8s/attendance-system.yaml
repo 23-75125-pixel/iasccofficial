@@ -21,10 +21,12 @@ metadata:
   name: face-attendance-web
   namespace: face-attendance
 spec:
-  replicas: 5
+  replicas: 1
   selector:
     matchLabels:
       app: face-attendance-web
+  strategy:
+    type: Recreate
   template:
     metadata:
       labels:
@@ -60,20 +62,36 @@ spec:
                 secretKeyRef:
                   name: face-attendance-secret
                   key: SECRET_KEY
+            - name: GUNICORN_WORKERS
+              value: "1"
+            - name: GUNICORN_THREADS
+              value: "2"
+            - name: GUNICORN_TIMEOUT
+              value: "180"
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: 5000
+            initialDelaySeconds: 5
+            timeoutSeconds: 5
+            periodSeconds: 5
+            failureThreshold: 24
           readinessProbe:
             httpGet:
               path: /readyz
               port: 5000
-            initialDelaySeconds: 10
-            timeoutSeconds: 5
+            initialDelaySeconds: 5
+            timeoutSeconds: 10
             periodSeconds: 10
+            failureThreshold: 6
           livenessProbe:
             httpGet:
               path: /healthz
               port: 5000
-            initialDelaySeconds: 20
-            timeoutSeconds: 5
-            periodSeconds: 20
+            initialDelaySeconds: 30
+            timeoutSeconds: 10
+            periodSeconds: 30
+            failureThreshold: 3
           resources:
             requests:
               cpu: 250m

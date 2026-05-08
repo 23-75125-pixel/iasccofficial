@@ -26,7 +26,7 @@ The Tailwind CSS is compiled locally into `static/css/styles.css`, so the app do
 - Automatic timestamped attendance logging
 - Attendance dashboard, search, and CSV export
 - Docker container configuration
-- Kubernetes Deployment, Service, PVC, and 5 replicas
+- Kubernetes Deployment, Service, PVC, and stable single-replica runtime for SQLite/OpenCV
 
 The default LBPH match threshold is `72`. Lower values are stricter and reduce wrong-student matches. You can tune it with:
 
@@ -108,7 +108,7 @@ kubectl get pods -n face-attendance
 kubectl get svc -n face-attendance
 ```
 
-The deployment uses `replicas: 5`, a NodePort service on `30080`, and a PVC mounted at `/app/instance` for the SQLite database, face samples, snapshots, and trained model files. For multi-node clusters, use a storage class that supports `ReadWriteMany`.
+The deployment uses `replicas: 1`, a NodePort service on `30080`, and a PVC mounted at `/app/instance` for the SQLite database, face samples, snapshots, and trained model files. Keep this app at one replica while it uses SQLite and local model files; running multiple pods against the same files can cause lock/restart problems during live camera recognition.
 If your GHCR package is private, create an image pull secret and add `imagePullSecrets` to the deployment:
 
 ```bash
@@ -249,7 +249,7 @@ Run ngrok in another terminal:
 ngrok http 5000
 ```
 
-For a multi-replica demo, prefer exposing the Minikube NodePort directly instead of using `kubectl port-forward`:
+For a public demo, prefer exposing the Minikube NodePort directly if port-forward keeps disconnecting:
 
 ```bash
 ngrok http "$(minikube ip):30080"

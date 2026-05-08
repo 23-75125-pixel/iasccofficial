@@ -426,7 +426,7 @@ kubectl rollout status deployment/face-attendance-web -n face-attendance</pre>
     <pre>kubectl port-forward -n face-attendance svc/face-attendance-service 5000:80
 ngrok http 5000
 
-# Preferred for 5 replicas:
+# Preferred when port-forward keeps disconnecting:
 ngrok http "$(minikube ip):30080"</pre>
   </section>
 
