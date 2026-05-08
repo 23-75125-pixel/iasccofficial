@@ -7,24 +7,74 @@
     @apply min-h-screen bg-slate-50 text-slate-900 antialiased;
   }
 
+  .app-shell.sidebar-open {
+    overflow: hidden;
+  }
+
+  @media (min-width: 1024px) {
+    .app-shell.sidebar-open {
+      overflow: auto;
+    }
+  }
+
+  .layout-shell {
+    @apply min-h-screen lg:grid lg:grid-cols-[260px_1fr];
+  }
+
+  .mobile-topbar {
+    @apply sticky top-0 z-40 flex h-16 items-center justify-between border-b border-slate-200 bg-white/95 px-4 shadow-sm backdrop-blur lg:hidden;
+  }
+
+  .mobile-menu-button {
+    @apply inline-flex h-11 w-11 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 shadow-sm transition-colors hover:border-brand-600 hover:bg-brand-50 hover:text-brand-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-50;
+  }
+
+  .menu-icon {
+    @apply grid gap-1;
+  }
+
+  .menu-icon span {
+    @apply block h-0.5 w-5 rounded-full bg-current;
+  }
+
+  .sidebar-backdrop {
+    @apply fixed inset-0 z-40 bg-slate-950/45 backdrop-blur-sm lg:hidden;
+  }
+
+  .sidebar-backdrop[hidden] {
+    @apply hidden;
+  }
+
   .app-sidebar {
-    @apply border-b border-slate-200 bg-white/95 px-4 py-4 shadow-sm backdrop-blur lg:sticky lg:top-0 lg:h-screen lg:border-b-0 lg:border-r lg:px-5 lg:py-6;
+    @apply fixed inset-y-0 left-0 z-50 w-80 max-w-[calc(100vw-3rem)] -translate-x-full border-r border-slate-200 bg-white shadow-xl transition-transform duration-200 ease-out lg:sticky lg:top-0 lg:z-auto lg:h-screen lg:w-auto lg:max-w-none lg:translate-x-0 lg:shadow-sm lg:transition-none;
+  }
+
+  .app-shell.sidebar-open .app-sidebar {
+    @apply translate-x-0;
+  }
+
+  .sidebar-inner {
+    @apply flex h-full min-h-0 flex-col gap-5 overflow-y-auto px-4 py-5 lg:px-5 lg:py-6;
+  }
+
+  .sidebar-brand {
+    @apply shrink-0;
   }
 
   .brand-link {
-    @apply flex items-center gap-3 font-bold tracking-tight text-slate-950 transition hover:text-brand-700;
+    @apply flex min-w-0 items-center gap-3 font-bold text-slate-950 transition-colors hover:text-brand-700;
   }
 
   .brand-logo {
-    @apply h-10 w-10 rounded-xl shadow-sm;
+    @apply h-10 w-10 shrink-0 rounded-lg shadow-sm;
   }
 
   .nav-list {
-    @apply mt-5 flex gap-2 overflow-x-auto pb-1 lg:grid lg:gap-1 lg:overflow-visible lg:pb-0;
+    @apply grid gap-1;
   }
 
   .nav-link {
-    @apply shrink-0 rounded-lg px-3 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-50;
+    @apply flex min-h-11 w-full items-center rounded-lg px-3 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-50;
   }
 
   .nav-link-active {
@@ -32,11 +82,15 @@
   }
 
   .nav-link-idle {
-    @apply text-slate-600 hover:bg-slate-100 hover:text-slate-950;
+    @apply text-slate-600 hover:bg-brand-50 hover:text-brand-700;
+  }
+
+  .nav-link-logout {
+    @apply mt-auto border border-red-100 bg-red-50 text-red-700 hover:border-red-200 hover:bg-red-100 hover:text-red-800 focus-visible:ring-red-100;
   }
 
   .content-shell {
-    @apply mx-auto min-w-0 w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8;
+    @apply mx-auto min-w-0 w-full max-w-7xl px-4 py-5 sm:px-6 lg:px-8 lg:py-6;
   }
 
   .page-header {
@@ -48,7 +102,7 @@
   }
 
   .page-title {
-    @apply text-2xl font-bold tracking-tight text-slate-950;
+    @apply text-2xl font-bold text-slate-950;
   }
 
   .page-subtitle {
@@ -56,7 +110,7 @@
   }
 
   .section-title {
-    @apply text-lg font-bold tracking-tight text-slate-950;
+    @apply text-lg font-bold text-slate-950;
   }
 
   .section-subtitle {
@@ -64,15 +118,15 @@
   }
 
   .panel-card {
-    @apply min-w-0 rounded-2xl border border-slate-200 bg-white shadow-sm;
+    @apply min-w-0 rounded-lg border border-slate-200 bg-white shadow-sm;
   }
 
   .panel-pad {
-    @apply p-5;
+    @apply p-4 sm:p-5;
   }
 
   .auth-card {
-    @apply rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8;
+    @apply rounded-lg border border-slate-200 bg-white p-6 shadow-sm sm:p-8;
   }
 
   .form-label {
@@ -84,15 +138,19 @@
   }
 
   .btn {
-    @apply inline-flex h-11 items-center justify-center rounded-lg px-4 text-sm font-bold transition focus-visible:outline-none focus-visible:ring-4 disabled:cursor-not-allowed disabled:opacity-60;
+    @apply inline-flex min-h-11 items-center justify-center rounded-lg border px-4 text-center text-sm font-bold leading-tight shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-4 disabled:cursor-not-allowed disabled:opacity-60;
   }
 
   .btn-primary {
-    @apply bg-brand-600 text-white shadow-sm hover:bg-brand-700 focus-visible:ring-brand-50;
+    @apply border-brand-600 bg-brand-600 text-white hover:border-brand-700 hover:bg-brand-700 focus-visible:ring-brand-50;
   }
 
   .btn-secondary {
-    @apply bg-slate-100 text-slate-800 hover:bg-slate-200 hover:text-slate-950 focus-visible:ring-slate-200;
+    @apply border-slate-300 bg-white text-slate-700 hover:border-brand-200 hover:bg-brand-50 hover:text-brand-700 focus-visible:ring-brand-50;
+  }
+
+  .btn-danger {
+    @apply border-red-600 bg-red-600 text-white hover:border-red-700 hover:bg-red-700 focus-visible:ring-red-100;
   }
 
   .status-pill {
@@ -144,15 +202,15 @@
   }
 
   .empty-state {
-    @apply rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-center text-sm font-semibold text-slate-500;
+    @apply rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4 text-center text-sm font-semibold text-slate-500;
   }
 
   .empty-state-sm {
-    @apply col-span-full rounded-xl border border-dashed border-slate-300 bg-slate-50 p-3 text-center text-sm font-semibold text-slate-500;
+    @apply col-span-full rounded-lg border border-dashed border-slate-300 bg-slate-50 p-3 text-center text-sm font-semibold text-slate-500;
   }
 
   .activity-card {
-    @apply flex min-w-0 items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3;
+    @apply flex min-w-0 flex-col items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3 sm:flex-row sm:items-center sm:justify-between;
   }
 
   .activity-title {
@@ -164,7 +222,7 @@
   }
 
   .table-shell {
-    @apply min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm;
+    @apply min-w-0 overflow-hidden rounded-lg border border-slate-200 bg-white p-3 shadow-sm sm:p-5;
   }
 
   .data-table {
@@ -172,23 +230,23 @@
   }
 
   .table-head-row {
-    @apply border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500;
+    @apply border-b border-slate-200 bg-slate-50 text-xs uppercase text-slate-500;
   }
 
   .table-th {
-    @apply px-4 py-3 font-bold;
+    @apply whitespace-nowrap px-3 py-3 font-bold sm:px-4;
   }
 
   .table-td {
-    @apply px-4 py-4 text-slate-700;
+    @apply px-3 py-3 align-top text-slate-700 sm:px-4 sm:py-4;
   }
 
   .table-td-muted {
-    @apply px-4 py-4 text-slate-500;
+    @apply px-3 py-3 text-slate-500 sm:px-4 sm:py-4;
   }
 
   .camera-frame {
-    @apply relative grid aspect-[4/3] place-items-center overflow-hidden rounded-xl border border-slate-200 bg-slate-950;
+    @apply relative grid aspect-[4/3] place-items-center overflow-hidden rounded-lg border border-slate-200 bg-slate-950;
   }
 
   .camera-video {
@@ -212,11 +270,11 @@
   }
 
   .face-box-label {
-    @apply absolute -top-7 left-0 max-w-64 truncate whitespace-nowrap rounded-md bg-brand-600 px-2 py-1 text-xs font-bold text-white shadow-sm;
+    @apply absolute -top-7 left-0 max-w-[min(14rem,70vw)] truncate whitespace-nowrap rounded-md bg-brand-600 px-2 py-1 text-xs font-bold text-white shadow-sm;
   }
 
   .capture-thumb {
-    @apply relative aspect-square overflow-hidden rounded-xl border-2 border-transparent bg-slate-100 transition hover:border-brand-600 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-50;
+    @apply relative aspect-square overflow-hidden rounded-lg border-2 border-transparent bg-slate-100 transition-colors hover:border-brand-600 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-50;
   }
 
   .capture-number {

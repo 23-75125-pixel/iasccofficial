@@ -8,8 +8,8 @@
     <h1 class="page-title">Dashboard</h1>
     <p class="page-subtitle">Live summary of registered users and attendance.</p>
   </div>
-  <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
-    <input class="form-input" id="dashboardDate" type="date" aria-label="Dashboard attendance date">
+  <div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+    <input class="form-input w-full sm:w-auto" id="dashboardDate" type="date" aria-label="Dashboard attendance date">
     <span class="status-pill badge-neutral" id="systemStatus">Checking system</span>
   </div>
 </header>
@@ -17,17 +17,17 @@
 <section class="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3" aria-label="Dashboard statistics">
   <article class="panel-card panel-pad">
     <span class="text-sm font-semibold text-muted">Total Students</span>
-    <strong class="mt-2 block text-3xl font-bold tracking-tight text-strong" id="totalStudents">0</strong>
+    <strong class="mt-2 block text-3xl font-bold text-strong" id="totalStudents">0</strong>
     <p class="page-subtitle">Active registered students</p>
   </article>
   <article class="panel-card panel-pad">
     <span class="text-sm font-semibold text-muted">Attendance for Date</span>
-    <strong class="mt-2 block text-3xl font-bold tracking-tight text-strong" id="attendanceToday">0</strong>
+    <strong class="mt-2 block text-3xl font-bold text-strong" id="attendanceToday">0</strong>
     <p class="page-subtitle" id="attendanceDateLabel">Students marked present on selected date</p>
   </article>
   <article class="panel-card panel-pad sm:col-span-2 xl:col-span-1">
     <span class="text-sm font-semibold text-muted">Recognition Model</span>
-    <strong class="mt-2 block text-3xl font-bold tracking-tight text-strong" id="modelStatus">Not trained</strong>
+    <strong class="mt-2 block text-3xl font-bold text-strong" id="modelStatus">Not trained</strong>
     <p class="page-subtitle">Updated when students are registered</p>
   </article>
 </section>

@@ -259,6 +259,55 @@ function setupLogin() {
   });
 }
 
+function setupSidebar() {
+  const sidebar = $("#appSidebar");
+  const toggle = $("#sidebarToggle");
+  const backdrop = $("#sidebarBackdrop");
+  if (!sidebar || !toggle) return;
+
+  const setSidebarOpen = (isOpen) => {
+    document.body.classList.toggle("sidebar-open", isOpen);
+    toggle.setAttribute("aria-expanded", String(isOpen));
+    toggle.setAttribute("aria-label", isOpen ? "Close navigation" : "Open navigation");
+    if (backdrop) {
+      backdrop.hidden = !isOpen;
+      backdrop.setAttribute("aria-hidden", String(!isOpen));
+    }
+  };
+
+  toggle.addEventListener("click", () => {
+    setSidebarOpen(!document.body.classList.contains("sidebar-open"));
+  });
+
+  backdrop?.addEventListener("click", () => setSidebarOpen(false));
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      setSidebarOpen(false);
+    }
+  });
+
+  sidebar.querySelectorAll("a").forEach((link) => {
+    link.addEventListener("click", () => {
+      if (window.matchMedia("(max-width: 1023px)").matches) {
+        setSidebarOpen(false);
+      }
+    });
+  });
+
+  const desktopQuery = window.matchMedia("(min-width: 1024px)");
+  const closeOnDesktop = (event) => {
+    if (event.matches) {
+      setSidebarOpen(false);
+    }
+  };
+  if (desktopQuery.addEventListener) {
+    desktopQuery.addEventListener("change", closeOnDesktop);
+  } else {
+    desktopQuery.addListener(closeOnDesktop);
+  }
+}
+
 function setupDashboard() {
   const dateInput = $("#dashboardDate");
   if (!dateInput) return;
@@ -493,7 +542,7 @@ function renderStudentRow(student) {
       <td class="${ui.tableCell}">
         <div class="flex flex-col gap-2 sm:flex-row">
           <button class="btn btn-secondary" type="button" data-action="edit" data-id="${student.id}">Edit</button>
-          <button class="btn btn-secondary" type="button" data-action="delete" data-id="${student.id}" data-name="${escapeHtml(student.full_name)}">Delete</button>
+          <button class="btn btn-danger" type="button" data-action="delete" data-id="${student.id}" data-name="${escapeHtml(student.full_name)}">Delete</button>
         </div>
       </td>
     </tr>
@@ -769,6 +818,7 @@ window.addEventListener("beforeunload", () => {
 });
 
 document.addEventListener("DOMContentLoaded", () => {
+  setupSidebar();
   setupLogin();
   setupDashboard();
   loadDashboard();

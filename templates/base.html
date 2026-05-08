@@ -8,19 +8,37 @@
 </head>
 <body class="app-shell {% block body_class %}{% endblock %}">
   {% if active_page is defined %}
-    <div class="min-h-screen lg:grid lg:grid-cols-[260px_1fr]">
-      <aside class="app-sidebar">
+    <div class="layout-shell">
+      <header class="mobile-topbar">
         <a class="brand-link" href="{{ url_for('dashboard') }}">
           <img class="brand-logo" src="{{ url_for('static', filename='assets/face-logo.svg') }}" alt="Face Attendance logo">
           <span>Face Attendance</span>
         </a>
-        <nav class="nav-list" aria-label="Main navigation">
-          <a class="nav-link {{ 'nav-link-active' if active_page == 'dashboard' else 'nav-link-idle' }}" href="{{ url_for('dashboard') }}">Dashboard</a>
-          <a class="nav-link {{ 'nav-link-active' if active_page == 'register' else 'nav-link-idle' }}" href="{{ url_for('register') }}">Register User</a>
-          <a class="nav-link {{ 'nav-link-active' if active_page == 'attendance' else 'nav-link-idle' }}" href="{{ url_for('attendance') }}">Live Attendance</a>
-          <a class="nav-link {{ 'nav-link-active' if active_page == 'records' else 'nav-link-idle' }}" href="{{ url_for('records') }}">Records</a>
-          <a class="nav-link nav-link-idle" href="{{ url_for('logout') }}">Logout</a>
-        </nav>
+        <button class="mobile-menu-button" id="sidebarToggle" type="button" aria-label="Open navigation" aria-controls="appSidebar" aria-expanded="false">
+          <span class="menu-icon" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+          </span>
+        </button>
+      </header>
+
+      <div class="sidebar-backdrop" id="sidebarBackdrop" hidden></div>
+
+      <aside class="app-sidebar" id="appSidebar" aria-label="Main navigation">
+        <div class="sidebar-inner">
+          <a class="brand-link sidebar-brand" href="{{ url_for('dashboard') }}">
+            <img class="brand-logo" src="{{ url_for('static', filename='assets/face-logo.svg') }}" alt="Face Attendance logo">
+            <span>Face Attendance</span>
+          </a>
+          <nav class="nav-list" aria-label="Main navigation">
+            <a class="nav-link {{ 'nav-link-active' if active_page == 'dashboard' else 'nav-link-idle' }}" href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a class="nav-link {{ 'nav-link-active' if active_page == 'register' else 'nav-link-idle' }}" href="{{ url_for('register') }}">Register User</a>
+            <a class="nav-link {{ 'nav-link-active' if active_page == 'attendance' else 'nav-link-idle' }}" href="{{ url_for('attendance') }}">Live Attendance</a>
+            <a class="nav-link {{ 'nav-link-active' if active_page == 'records' else 'nav-link-idle' }}" href="{{ url_for('records') }}">Records</a>
+          </nav>
+          <a class="nav-link nav-link-logout" href="{{ url_for('logout') }}">Logout</a>
+        </div>
       </aside>
 
       <main class="content-shell">

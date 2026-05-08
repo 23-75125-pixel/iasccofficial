@@ -429,9 +429,9 @@ def create_app(config=None):
         try:
             result = face_engine.recognize(image_data)
         except FaceEngineUnavailable as exc:
-            return _json_error(str(exc), 503)
+            return _attendance_skip_response(str(exc))
         except FaceEngineError as exc:
-            return _json_error(str(exc), 400)
+            return _attendance_skip_response(str(exc))
 
         if not result["matched"]:
             return jsonify(
@@ -481,11 +481,15 @@ def create_app(config=None):
 
         snapshot_path = None
         try:
-            snapshot_path = face_engine.save_attendance_snapshot(
-                student["student_number"],
-                image_data,
-                now,
-            )
+            try:
+                snapshot_path = face_engine.save_attendance_snapshot(
+                    student["student_number"],
+                    image_data,
+                    now,
+                )
+            except Exception:
+                # Snapshot storage is useful, but a matched student should still be marked present.
+                snapshot_path = None
             cursor = db.execute(
                 """
                 INSERT INTO attendance_logs
@@ -523,7 +527,7 @@ def create_app(config=None):
                     "Attendance was already recorded today.",
                 )
             return _json_error("Attendance was recorded by another request. Try again.", 409)
-        except (sqlite3.Error, FaceEngineError) as exc:
+        except sqlite3.Error as exc:
             db.rollback()
             face_engine.delete_relative_file(snapshot_path)
             return _json_error(f"Attendance could not be saved: {exc}", 500)
@@ -801,6 +805,20 @@ def _attendance_response(result, student, attendance, attendance_date, status, m
                 "recorded_at": attendance["recorded_at"],
                 "confidence": round(float(attendance["confidence"]), 2),
             },
+            "message": message,
+        }
+    )
+
+
+def _attendance_skip_response(message):
+    return jsonify(
+        {
+            "ok": True,
+            "matched": False,
+            "detection": {"box": None, "image_size": None, "backend": None},
+            "status": "Unknown",
+            "confidence": None,
+            "threshold": None,
             "message": message,
         }
     )
